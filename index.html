@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>INFINITE FORGE ONLINE</title>
+<style>
+:root{color-scheme:dark;--bg:#0d0b10;--pn:#1a161f;--ln:#3a3040;--tx:#eee6dc;--mu:#9a8f9e;--gd:#e0b04a;--cy:#4fd8ff;--rd:#e5484d;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif}
+#app{max-width:560px;margin:0 auto;padding:8px 10px 80px}
+header{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px;background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:8px 10px}
+header b{color:var(--gd)}.card{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:12px;margin-top:10px}
+h3{margin:0 0 8px;font-size:15px;color:var(--gd)}.mu{color:var(--mu);font-size:12px}
+button{font:inherit;color:var(--tx);background:#2a2230;border:1px solid var(--ln);border-radius:10px;padding:11px 14px;min-height:44px;cursor:pointer}
+button.pri{background:linear-gradient(#c9892a,#8a4f12);border-color:var(--gd);font-weight:700}button.dgr{background:#5a1c20;border-color:var(--rd)}button:disabled{opacity:.45}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#120f16;border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;border:0;border-radius:0;background:none;min-height:56px}nav button.on{color:var(--gd);box-shadow:inset 0 3px var(--gd)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.row>*{flex:1}
+.it{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--ln);padding:8px 0;font-size:14px}.it:last-child{border:0}
+input[type=text],input[type=email],input[type=password]{width:100%;padding:12px;margin-top:8px;border-radius:10px;border:1px solid var(--ln);background:#0c0a0f;color:var(--tx);font:inherit}
+.bar{height:14px;background:#000;border-radius:7px;overflow:hidden;border:1px solid var(--ln)}.bar i{display:block;height:100%;background:var(--rd);animation:dr 1s linear forwards}
+@keyframes dr{from{width:100%}to{width:0}}#arena{height:110px;display:flex;justify-content:space-around;align-items:center;font-size:54px;border-radius:10px;background:radial-gradient(#2b1d33,#120f16)}
+#orb{width:120px;height:120px;margin:6px auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;background:#0c0a0f;border:2px solid var(--ln)}
+#bn{background:#5a1c20;border:1px solid var(--rd);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:13px}
+.chat{max-height:240px;overflow:auto;font-size:13px}
+</style></head><body><div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script>
+"use strict";
+/* ==== ใส่ค่าจาก Supabase > Project Settings > API (ใช้ anon key เท่านั้น ห้ามใส่ service_role) ==== */
+const SUPABASE_URL="https://bjfqmmiisnttocsuymrl.supabase.co", SUPABASE_ANON_KEY="sb_publishable_5Xs1HSzRKNIwzHHyJqO7YA_H6s0GdOn";
+const configured=!SUPABASE_URL.startsWith("PASTE");
+const sb=configured?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const R=[["Common","#bbb"],["Uncommon","#5fd35f"],["Rare","#4f9cff"],["Epic","#c070ff"],["Legendary","#e0b04a"],["Mythic","#ff5fd0"]];
+const Z=[["Beginner Forest",1],["Forgotten Mine",5],["Flame Canyon",10]],G={Sword:"🗡",Dagger:"🔪",Greatsword:"⚔️",armor:"🛡"};
+let user=null,C=null,I=[],tab="battle",banner="",busy=false,bossNext=false,log=[],chat=[],online=[],lb=[],armed=false,useProt=false,fs="weapon",sellArm="",draft="",res="",authMsg="";
+const $=s=>document.querySelector(s),fmt=n=>{n=Number(n);if(!isFinite(n))return"∞";if(n<1e4)return""+Math.floor(n);const u=["","K","M","B","T","Q"];let i=0;while(n>=1e3&&i<5){n/=1e3;i++}return n.toFixed(1)+u[i]};
+const pw=(b,l)=>Math.floor(b*(1+l*.15)),rate=l=>Math.max(5,Math.round(95-l*3.5)),cost=l=>({g:Math.min(1e15,Math.floor(40*Math.pow(1.3,Math.min(l,200)))),s:1+Math.floor(l/4)});
+const iname=i=>(i.slot=="weapon"?i.wtype:"Armor")+" +"+i.enh_level;
+async function rpc(n,a){try{const{data,error}=await sb.rpc(n,a||{});if(error){banner="⚠ "+error.message;render();return null}banner="";return data===null?true:data}
+catch(e){banner="⚠ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — การกระทำนี้ไม่ได้ถูกบันทึก";render();return null}}
+async function load(){const a=await sb.from("characters").select("*").maybeSingle();if(a.error){banner="⚠ "+a.error.message;return}C=a.data;
+if(C){const b=await sb.from("inventory_items").select("*").order("created_at");I=b.data||[]}}
+async function boot(){if(!configured){render();return}const{data}=await sb.auth.getSession();user=data.session?data.session.user:null;
+if(user)await start();render();sb.auth.onAuthStateChange((_e,s)=>{user=s?s.user:null})}
+async function start(){await load();
+const m=await sb.from("chat_messages").select("*").order("id",{ascending:false}).limit(50);chat=(m.data||[]).reverse();
+sb.channel("chat").on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},p=>{chat.push(p.new);chat=chat.slice(-50);if(tab=="social")render(true)}).subscribe();
+rpc("heartbeat");setInterval(()=>{if(user)rpc("heartbeat")},30000)}
+async function auth(up){const e=$("#em").value.trim(),p=$("#pw").value;authMsg="";
+const r=up?await sb.auth.signUp({email:e,password:p}):await sb.auth.signInWithPassword({email:e,password:p});
+if(r.error){authMsg=r.error.message;render();return}
+if(up&&!r.data.session){authMsg="สมัครแล้ว กรุณายืนยันอีเมล (หรือปิด Confirm email ใน Supabase) แล้วเข้าสู่ระบบ";render();return}
+user=r.data.session.user;await start();render()}
+async function out(){await sb.auth.signOut();user=null;C=null;location.reload()}
+async function create(){const r=await rpc("create_character",{p_name:$("#nm").value});if(r){await load();render()}}
+async function fight(){if(!C||tab!="battle"||busy)return;busy=true;const b=bossNext;bossNext=false;
+const r=await rpc("claim_battle",{p_boss:b,p_request:crypto.randomUUID()});busy=false;if(!r)return;
+C=r.char;log.unshift(r.win?`✔ +${fmt(r.gold)} ทอง +${fmt(r.exp)} EXP${r.stone?" 💎"+r.stone:""}${r.prot?" 🛡"+r.prot:""}${r.drop?" 🎁 "+R[r.drop.rarity][0]:""}${r.level_up?" ⬆ Lv"+r.lvl:""}`:"☠ พ่ายแพ้ — อุปกรณ์ยังอ่อนเกินไป");
+log=log.slice(0,6);if(r.drop)await load();render()}
+setInterval(fight,1300);
+async function act(fn,args){const r=await rpc(fn,args);if(r){await load();render()}}
+async function zone(i){await act("set_zone",{p_zone:i})}
+async function enh(id){if(busy)return;const it=I.find(x=>x.id==id);if(!it)return;
+if(it.enh_level>=8&&!armed){armed=true;render();setTimeout(()=>{armed=false;render()},3500);return}
+armed=false;busy=true;const r=await rpc("enhance",{p_item:id,p_use_prot:useProt,p_request:crypto.randomUUID()});busy=false;
+if(r){const m={success:"✅ สำเร็จ!",fail_safe:"❌ ล้มเหลว (ไม่เสียหาย)",fail_protected:"🛡 ล้มเหลว หินป้องกันรักษาระดับไว้",fail_downgrade:"💥 ล้มเหลว ระดับลด −1"};res=m[r.outcome]||r.outcome;await load()}render()}
+async function sell(id){const it=I.find(x=>x.id==id);if(it.rarity>=2&&sellArm!=id){sellArm=id;render();return}sellArm="";await act("sell_item",{p_item:id})}
+async function say(){const b=draft.trim();if(!b)return;draft="";const{error}=await sb.from("chat_messages").insert({body:b});if(error)banner="⚠ "+error.message;render()}
+async function social(){const[a,b]=await Promise.all([sb.rpc("online_players"),sb.rpc("leaderboard")]);online=a.data||[];lb=b.data||[];render()}
+function tabTo(t){tab=t;armed=false;if(t=="social")social();render()}
+function row(i){const e=i.equipped,cur=I.find(x=>x.equipped&&x.slot==i.slot),d=cur?pw(i.base,i.enh_level)-pw(cur.base,cur.enh_level):0;
+return`<div class="it"><div><b style="color:${R[i.rarity][1]}">${R[i.rarity][0]} ${iname(i)}</b>${i.locked?" 🔒":""}<div class="mu">${i.slot=="weapon"?"ATK":"DEF"} ${fmt(pw(i.base,i.enh_level))}${e?" · สวมอยู่":" ("+(d>=0?"+":"")+fmt(d)+")"}</div></div>`+
+(e?"":`<div style="display:flex;gap:6px"><button onclick="act('equip_item',{p_item:'${i.id}'})">สวม</button><button onclick="act('set_lock',{p_item:'${i.id}',p_locked:${!i.locked}})">🔒</button><button class="${sellArm==i.id?"dgr":""}" ${i.locked?"disabled":""} onclick="sell('${i.id}')">${sellArm==i.id?"ยืนยัน?":"ขาย"}</button></div>`)+`</div>`}
+function render(keep){const A=$("#app");const bn=banner?`<div id="bn">${banner}</div>`:"";
+if(!configured){A.innerHTML=`<div class="card"><h3>ยังไม่ได้ตั้งค่า Supabase</h3><p>เปิดไฟล์ index.html แล้วใส่ SUPABASE_URL และ SUPABASE_ANON_KEY ตาม README</p></div>`;return}
+if(!user){A.innerHTML=`<div class="card"><h3>INFINITE FORGE ONLINE</h3><input id="em" type="email" placeholder="อีเมล" autocomplete="email"><input id="pw" type="password" placeholder="รหัสผ่าน (6 ตัวขึ้นไป)" autocomplete="current-password"><div class="row"><button class="pri" onclick="auth(false)">เข้าสู่ระบบ</button><button onclick="auth(true)">สมัครสมาชิก</button></div><p class="mu">${authMsg}</p></div>`;return}
+if(!C){A.innerHTML=`<div class="card"><h3>สร้างตัวละคร</h3><input id="nm" type="text" maxlength="16" placeholder="ชื่อ 3–16 ตัว (A-Z 0-9 _ ไทย)"><div class="row"><button class="pri" onclick="create()">สร้าง</button><button onclick="out()">ออกจากระบบ</button></div>${bn}</div>`;return}
+const eq=I.find(x=>x.equipped&&x.slot=="weapon"),ar=I.find(x=>x.equipped&&x.slot=="armor");
+let h=`<header><span><b>${C.name}</b> Lv${C.lvl}</span><span>🪙 ${fmt(C.gold)}</span><span>💎 ${fmt(C.stone)}</span><span>🛡 ${fmt(C.prot)}</span><span>⚔ ${fmt((eq?pw(eq.base,eq.enh_level):2)+C.lvl*2)}</span></header>${bn}`;
+if(tab=="battle")h+=`<div class="card"><h3>${Z[C.zone][0]}</h3><div id="arena"><span>🧙</span><span>${bossNext?"👑":"👾"}</span></div><div class="bar" style="margin-top:8px"><i></i></div>
+<div class="row"><button class="dgr" onclick="bossNext=true;render()">${bossNext?"บอสในรอบถัดไป…":"👑 ท้าบอส"}</button></div><div class="mu" style="margin-top:8px;min-height:80px">${log.join("<br>")||"กำลังรอผลการต่อสู้จากเซิร์ฟเวอร์…"}</div></div>
+<div class="card"><h3>พื้นที่</h3>${Z.map((z,i)=>`<div class="it"><div><b>${z[0]}</b><div class="mu">ต้องการ Lv ${z[1]}</div></div><button class="${i==C.zone?"pri":""}" ${C.lvl<z[1]?"disabled":""} onclick="zone(${i})">${i==C.zone?"อยู่ที่นี่":"ไป"}</button></div>`).join("")}</div>`;
+else if(tab=="forge"){const it=fs=="weapon"?eq:ar;h+=`<div class="card"><h3>Forge</h3><div class="row"><button class="${fs=="weapon"?"pri":""}" onclick="fs='weapon';render()">อาวุธ</button><button class="${fs=="armor"?"pri":""}" onclick="fs='armor';render()">เกราะ</button></div>`;
+if(!it)h+=`<p class="mu">ยังไม่ได้สวมชิ้นนี้</p>`;else{const c=cost(it.enh_level),r=rate(it.enh_level),risk=it.enh_level>=8,gl=it.enh_level>=25?"#e0b04a":it.enh_level>=10?"#ff8a3d":"#3a3040";
+h+=`<div id="orb" style="box-shadow:0 0 ${Math.min(80,12+it.enh_level*2)}px ${gl};border-color:${gl}">${G[it.slot=="weapon"?it.wtype:"armor"]}</div><div style="text-align:center"><b style="color:${R[it.rarity][1]}">${R[it.rarity][0]} ${iname(it)}</b><div class="mu">${fmt(pw(it.base,it.enh_level))} → ${fmt(pw(it.base,it.enh_level+1))}</div></div>
+<div class="card" style="background:#120f16">โอกาสสำเร็จ <b>${r}%</b><br>ค่าใช้จ่าย 🪙 ${fmt(c.g)} · 💎 ${c.s}<div class="mu">${risk?"ถ้าล้มเหลว: ระดับลด −1 (ใช้ 🛡 เพื่อรักษาระดับ)":"ถ้าล้มเหลว: ไม่เกิดอะไรขึ้น"}</div>${risk?`<label style="display:block;margin-top:8px"><input type="checkbox" ${useProt?"checked":""} onchange="useProt=this.checked;render()"> ใช้หินป้องกัน (มี ${C.prot})</label>`:""}</div>
+<div class="row"><button class="${armed?"dgr":"pri"}" ${busy||C.gold<c.g||C.stone<c.s?"disabled":""} onclick="enh('${it.id}')">${armed?"⚠ กดอีกครั้งเพื่อยืนยัน":"🔨 ตีบวก"}</button></div><p><b>${res}</b></p>`}h+=`</div>`}
+else if(tab=="bag")h+=`<div class="card"><h3>กระเป๋า (${I.length}/100)</h3>${I.map(row).join("")||'<p class="mu">ว่าง</p>'}</div>`;
+else h+=`<div class="card"><h3>แชตสาธารณะ</h3><div class="chat">${chat.map(m=>`<div><b>${esc(m.display_name)}</b>: ${esc(m.body)}</div>`).join("")||'<span class="mu">ยังไม่มีข้อความ</span>'}</div><div class="row"><input id="ch" type="text" maxlength="200" value="${esc(draft)}" oninput="draft=this.value" onkeydown="if(event.key=='Enter')say()" placeholder="พิมพ์ข้อความ"><button class="pri" style="flex:0" onclick="say()">ส่ง</button></div></div>
+<div class="card"><h3>ออนไลน์ตอนนี้ (${online.length})</h3>${online.map(p=>`<div class="it"><span>🟢 ${esc(p.name)}</span><span class="mu">Lv${p.lvl}</span></div>`).join("")||'<p class="mu">ยังไม่มีผู้เล่นออนไลน์</p>'}<button onclick="social()">รีเฟรช</button></div>
+<div class="card"><h3>อันดับ</h3>${lb.map((p,i)=>`<div class="it"><span>${i+1}. ${esc(p.name)}</span><span class="mu">Lv${p.lvl} · +${p.best_enh} · ${fmt(p.kills)} kills</span></div>`).join("")||'<p class="mu">ไม่มีข้อมูล</p>'}</div><div class="row"><button onclick="out()">ออกจากระบบ</button></div>`;
+h+=`<nav>${[["battle","⚔","สู้"],["forge","🔨","ตีบวก"],["bag","🎒","ถุง"],["social","💬","ออนไลน์"]].map(t=>`<button class="${tab==t[0]?"on":""}" onclick="tabTo('${t[0]}')">${t[1]}<br><small>${t[2]}</small></button>`).join("")}</nav>`;
+A.innerHTML=h;if(keep){const c=document.querySelector(".chat");if(c)c.scrollTop=c.scrollHeight}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+boot();
+</script></body></html>
