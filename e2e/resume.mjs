@@ -1,0 +1,44 @@
+// Persistence: local resume mid-dungeon after closing the tab, and cloud-save restore after local data is wiped.
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright');
+const url = process.env.URL ?? 'http://127.0.0.1:8787/';
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const ctx = await browser.newContext({ viewport: { width: 1280, height: 760 } });
+const errors = [];
+let page = await ctx.newPage();
+page.on('pageerror', (e) => errors.push(e.message));
+await page.goto(url);
+await page.waitForSelector('#btn-new', { timeout: 60000 });
+await page.click('#btn-new');
+await page.fill('#cc-name', 'Sora');
+await page.click('#cc-start');
+await page.waitForTimeout(2500);
+await page.evaluate(() => { window.__game.store.s.credits = 777; window.__game.store.persist(true); });
+await page.evaluate(() => window.__game.startDungeon('data_center', 0));
+await page.waitForTimeout(2500);
+const before = await page.evaluate(() => ({ d: window.__game.store.run?.dungeonId, pos: window.__game.store.run?.pos }));
+await page.evaluate(() => window.__game.store.persist(true));
+await page.waitForTimeout(1500);
+await page.close();
+// 1) reopen: continue resumes the dungeon run
+page = await ctx.newPage();
+await page.goto(url);
+await page.waitForSelector('#btn-continue', { timeout: 60000 });
+const label = await page.textContent('#btn-continue');
+await page.click('#btn-continue');
+await page.waitForTimeout(3000);
+const after = await page.evaluate(() => ({ d: window.__game.store.run?.dungeonId, world: window.__game.world?.name }));
+console.log('resume:', JSON.stringify({ before, label: label.trim(), after }));
+// 2) new tab whose local save was wiped before the app starts (token kept) → cloud save restores it
+await page.close();
+page = await ctx.newPage();
+await page.addInitScript(() => { if (!sessionStorage.getItem('wiped')) { localStorage.removeItem('scrapbound.save.v2'); localStorage.removeItem('scrapbound.run.v1'); sessionStorage.setItem('wiped', '1'); } });
+await page.goto(url);
+await page.waitForSelector('#btn-continue', { timeout: 60000 });
+const cloud = await page.evaluate(() => ({ name: window.__game.store.s.name, credits: window.__game.store.s.credits }));
+console.log('cloud restore:', JSON.stringify(cloud));
+if (cloud.name !== 'Sora' || cloud.credits !== 777) errors.push('cloud restore mismatch');
+if (after.d !== before.d) errors.push('dungeon resume mismatch');
+console.log('errors:', JSON.stringify(errors));
+await browser.close();

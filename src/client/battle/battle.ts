@@ -797,12 +797,15 @@ export class Battle {
       el.style.display = '';
       const w = el.offsetWidth || 120;
       const hgt = el.offsetHeight || 50;
-      let y = p.y;
-      // nudge labels upward so they never overlap (narrow phone screens)
+      const minY = hgt + 76;
+      const overlaps = (yy: number) => placed.find((r) => Math.abs(r.x - p.x) < (r.w + w) / 2 && Math.abs(r.y - yy) < (r.h + hgt) / 2);
+      // nudge labels upward so they never overlap; if that would hit the top bar, stack downward instead
+      let y = Math.max(p.y, minY);
       for (let guard = 0; guard < 6; guard++) {
-        const hit = placed.find((r) => Math.abs(r.x - p.x) < (r.w + w) / 2 && Math.abs(r.y - y) < (r.h + hgt) / 2);
+        const hit = overlaps(y);
         if (!hit) break;
-        y = hit.y - (hit.h + hgt) / 2 - 2;
+        const up = hit.y - (hit.h + hgt) / 2 - 2;
+        y = up >= minY ? up : hit.y + (hit.h + hgt) / 2 + 2;
       }
       placed.push({ x: p.x, y, w, h: hgt });
       el.style.left = `${p.x}px`;

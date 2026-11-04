@@ -294,5 +294,13 @@ input, select { font: inherit; }
   .minimap { width: 96px; height: 96px; }
   .joy { width: 116px; height: 116px; }
   .prompt { bottom: calc(20px + var(--safe-b)); }
-  .b-tools { right: calc(316px + var(--safe-r)); }
+  .b-tools { right: auto; top: auto; left: calc(6px + var(--safe-l)); bottom: calc(6px + var(--safe-b)); }
+  .b-cmd { overflow-y: auto; padding: 8px; }
+  .b-cmd .who { margin-bottom: 4px; font-size: 13px; }
+  .cmd { min-height: 42px; font-size: 11px; padding: 2px; }
+  .cmd .c { display: none; }
+  .cmd .i { font-size: 15px; }
+  .b-cmd .foot { margin-top: 6px; }
+  .b-cmd .foot .btn { min-height: 38px; }
+  .timeline { max-width: calc(100vw - 500px); }
 }

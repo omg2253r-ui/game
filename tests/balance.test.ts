@@ -63,3 +63,40 @@ it('balance: dungeons are winnable at level, bosses need preparation', () => {
   }
   console.log(table.join('\n'));
 }, 60000);
+
+import { raidWaves, coopPartyScale } from '../src/core/combat/setup';
+it('balance: co-op raids are winnable for 2-4 players at region level', () => {
+  const rows: string[] = [];
+  const results: number[] = [];
+  for (const d of DUNGEONS.slice(0, 3)) {
+    for (const players of [2, 4]) {
+      const lv = Math.round((d.levels[0] + d.levels[1]) / 2);
+      let wins = 0;
+      for (let k = 0; k < 10; k++) {
+        // a typical mixed group: ice, electric, plasma, gravity
+        const hunters = [...party(lv, ['photon_scythe', 'energy_katana', 'plasma_rifle']), party(lv, ['gravity_hammer', 'railgun', 'quantum_spear'])[0]].slice(0, players);
+        hunters.forEach((h, i) => { h.ownerId = `p${i}`; h.id = `p${i}`; });
+        const waves = raidWaves(d.id, 0, lv, 1000 + k, players);
+        let carry: any;
+        let ok = true;
+        for (let w = 0; w < waves.length && ok; w++) {
+          let st = buildBattle({ seed: 50 + k * 7 + w, hunters, enc: waves[w], difficulty: 0, mode: 'coop', bags: Object.fromEntries(hunters.map((h) => [h.ownerId, { repair_kit: 2, nano_revive: 1 }])), carry, partyScale: coopPartyScale(players) });
+          let r = 0;
+          while (st.phase === 'planning' && r < 60) {
+            const plans: any = {};
+            for (const u of st.units) if (u.side === 'ally' && u.alive && u.onField) plans[u.id] = chooseAllyAction(st, u, st.bags[u.ownerId!]);
+            st = resolveRound(st, plans).state;
+            r++;
+          }
+          ok = st.result === 'victory';
+          carry = { hp: Object.fromEntries(st.units.filter((u) => u.side === 'ally').map((u) => [u.templateId, u.alive ? u.hp : Math.round(u.stats.hp * 0.25)])), energy: {} };
+        }
+        wins += +ok;
+      }
+      rows.push(`${d.id.padEnd(14)} ${players}P Lv${lv}: raid wins ${wins}/10`);
+      results.push(wins);
+    }
+  }
+  console.log(rows.join('\n'));
+  for (const w of results) expect(w).toBeGreaterThanOrEqual(5);
+}, 60000);

@@ -16,9 +16,10 @@ import { PlayerController } from './world/controller';
 import type { Interactable, WorldScene } from './world/common';
 import { HunterCity } from './world/city';
 import { DungeonScene } from './world/dungeon';
-import { Battle } from './battle/battle';
+import type { Battle } from './battle/battle';
 import { generateDungeon, type DungeonLayout, type Encounter, type Room } from '../core/dungeon/generator';
 import { DUNGEON_MAP, DUNGEONS } from '../core/data/regions';
+import { ENEMY_MAP } from '../core/data/enemies';
 import { hunterBuild, hunterStats } from '../core/progression';
 import { buildBattle } from '../core/combat/setup';
 import { resolveRound } from '../core/combat/engine';
@@ -35,6 +36,10 @@ import { itemRow } from './ui/items';
 import * as Menus from './ui/menus';
 
 type Mode = 'title' | 'creator' | 'world' | 'battle';
+
+/** battle code is streamed in on first encounter (separate chunk) */
+let battleModule: Promise<typeof import('./battle/battle')> | null = null;
+const loadBattle = () => (battleModule ??= import('./battle/battle'));
 
 const HAIR_COLORS = ['#2b2f4a', '#e8e1d0', '#ff5fb8', '#5cffb0', '#ffcf4a', '#ff6a2a', '#9a7bff', '#dff6ff', '#1b1b1b', '#7a4a2a'];
 const EYE_COLORS = ['#5fd8ff', '#ff4fd8', '#ffc044', '#5fe08a', '#ff4f6b', '#b07bff', '#ffffff'];
@@ -98,8 +103,9 @@ export class Game implements Menus.GameApi {
 
   async boot() {
     const online = await api.ping();
-    if (online && store.save) {
-      await api.ensureGuest(store.s.name);
+    if (online && (store.save || api.session)) {
+      // a known session restores the cloud save even if this device lost its local data
+      if (store.save) await api.ensureGuest(store.s.name);
       const r = await store.syncFromServer();
       if (r === 'server') this.ui.toast('Cloud save loaded', 'good');
     }
@@ -355,6 +361,11 @@ export class Game implements Menus.GameApi {
     const def = DUNGEON_MAP[id];
     if (!def) return;
     let run = store.run;
+    const resuming = run?.dungeonId === id && run.difficulty === difficulty;
+    if (!resuming && (!store.unlocked(id, def.unlock) || (difficulty > 0 && (store.s.cleared[id] ?? -1) < difficulty - 1))) {
+      this.ui.toast('That dungeon / difficulty is still locked', 'bad');
+      return;
+    }
     if (!run || run.dungeonId !== id || run.difficulty !== difficulty) {
       const hp: Record<string, number> = {};
       const energy: Record<string, number> = {};
@@ -369,6 +380,7 @@ export class Game implements Menus.GameApi {
     }
     if (this.world instanceof HunterCity && this.controller) store.s.position = { x: this.controller.pos.x, z: this.controller.pos.z + 4 };
     store.persist();
+    void loadBattle();
     this.layout = generateDungeon(id, difficulty, store.partyLevel(), run.seed, Math.min(3, store.s.party.length));
     if (this.layout.warning) this.ui.toast(this.layout.warning, 'bad');
     await this.ui.fade(() => {
@@ -502,6 +514,7 @@ export class Game implements Menus.GameApi {
     }
     audio.sfx('encounter');
     this.ui.flash();
+    const { Battle } = await loadBattle();
     this.mode = 'battle';
     this.input.unmountJoystick();
     await this.ui.fade(() => {
@@ -602,7 +615,13 @@ export class Game implements Menus.GameApi {
       if (stats) p.body.append(h('div', { class: 'mu', style: 'margin-bottom:8px' }, `Rounds ${stats.rounds} · Reactions ${stats.reactions} · Breaks ${stats.breaks} · Best chain ×${stats.chain}`));
       for (const l of levels) p.body.append(h('div', { class: 'toast good', style: 'animation:none;margin-bottom:6px' }, `⬆ ${l.name} reached Lv ${l.level}! (+1 skill point)`));
       const grid = h('div', { class: 'loot' });
-      for (const it of items) grid.append(itemRow(it));
+      const merged: ItemInstance[] = [];
+      for (const it of items) {
+        const ex = (it.kind === 'material' || it.kind === 'consumable') && merged.find((m) => m.kind === it.kind && m.defId === it.defId);
+        if (ex) ex.qty += it.qty;
+        else merged.push({ ...it });
+      }
+      for (const it of merged.sort((a, b) => b.rarity - a.rarity)) grid.append(itemRow(it));
       if (!items.length) grid.append(h('div', { class: 'mu' }, 'No items'));
       p.body.append(grid, h('button', { class: 'btn pri', style: 'width:100%;margin-top:10px', id: 'loot-ok', on: { click: () => this.ui.closePanel() } }, 'Continue'));
     });
@@ -746,7 +765,8 @@ export class Game implements Menus.GameApi {
       for (const m of room.members) list.append(h('div', { class: `item ${m.ready ? 'sel' : ''}` }, h('span', { class: 'ic' }, m.connected ? (m.ready ? '✔' : '…') : '⚠'), h('div', { style: 'flex:1' }, h('div', { class: 'nm' }, `${m.name}${m.id === room.hostId ? ' 👑' : ''}${m.id === me ? ' (you)' : ''}`), h('div', { class: 'sub' }, `Lv${m.level} · ${WEAPON_MAP[m.weapon]?.name ?? m.weapon}${m.connected ? '' : ' · disconnected (AI controls)'}`))));
       p.body.append(list);
       config = room.config;
-      const cfg = h('div', { class: 'card', style: 'margin-top:10px' }, h('h3', null, `Raid: ${DUNGEON_MAP[config.dungeonId]?.name} · ${DIFFICULTIES[config.difficulty]}`));
+      const rd = DUNGEON_MAP[config.dungeonId];
+      const cfg = h('div', { class: 'card', style: 'margin-top:10px' }, h('h3', null, `Raid: ${rd?.name} · ${DIFFICULTIES[config.difficulty]}`), h('div', { class: 'mu' }, `Recommended Lv ${rd.levels[0] + 3}+ · mixed elements help (boss weak to ${(ENEMY_MAP[rd.boss]?.profile.weak ?? []).join(' & ')})`));
       if (host) {
         const sel = h('select', { id: 'raid-dungeon' }, ...DUNGEONS.map((d) => h('option', { value: d.id, selected: d.id === config.dungeonId }, d.name))) as HTMLSelectElement;
         const dif = h('select', { id: 'raid-diff' }, ...DIFFICULTIES.map((d, i) => h('option', { value: String(i), selected: i === config.difficulty }, d))) as HTMLSelectElement;
@@ -812,6 +832,7 @@ export class Game implements Menus.GameApi {
         this.ui.closePanel(true);
         this.lobbyRender = null;
         const def = DUNGEON_MAP[this.coopRoom?.config.dungeonId ?? 'data_center'];
+        const { Battle } = await loadBattle();
         this.mode = 'battle';
         this.input.unmountJoystick();
         await this.ui.fade(() => {

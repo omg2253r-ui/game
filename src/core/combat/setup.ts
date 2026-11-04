@@ -84,5 +84,5 @@ export function raidWaves(dungeonId: string, difficulty: number, partyLevel: num
 }
 
 export function coopPartyScale(players: number): number {
-  return 0.45 + 0.2 * players;
+  return 0.35 + 0.2 * players;
 }
