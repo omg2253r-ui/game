@@ -1,0 +1,21 @@
+# Static hosting of the game client on Netlify.
+# The co-op / cloud-save API runs on Cloudflare Workers (see wrangler.toml); without it the
+# game runs in offline single-player mode with local saves.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# no API on this host: answer fast so the client switches to offline mode
+[[redirects]]
+  from = "/api/*"
+  to = "/404.json"
+  status = 404
+  force = true
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
