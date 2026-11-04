@@ -128,7 +128,7 @@ export const ENEMIES: EnemyDef[] = [
     size: 2.4, color: '#ff5a2a', desc: 'Gains Meltdown each round (+ATK). At 5 stacks it explodes. Ice hits remove stacks.',
   },
   {
-    id: 'neural_overlord', name: 'Neural Overlord', model: 'neural_overlord', element: 'quantum', base: st(5200, 86, 48, 104), armor: 210,
+    id: 'neural_overlord', name: 'Neural Overlord', model: 'neural_overlord', element: 'quantum', base: st(4400, 86, 48, 104), armor: 210,
     profile: { weak: ['electric', 'physical'], resist: ['quantum'], immune: [] },
     skills: ['b_neural_lance', 'b_mind_hack', 'b_thought_storm'], ai: 'boss', exp: 820, credits: [700, 880], boss: true,
     drops: [{ item: 'quantum_chip', w: 30 }, { item: 'cpu', w: 25 }, { item: 'ram', w: 25 }, { item: 'gpu', w: 20 }], dropCount: [3, 5],
@@ -140,7 +140,7 @@ export const ENEMIES: EnemyDef[] = [
     size: 2.2, color: '#d06bff', desc: 'Mind Hack turns hunters against each other. Rewrites its weaknesses every phase — Scan it!',
   },
   {
-    id: 'omega_machine', name: 'Omega Machine', model: 'omega_machine', element: 'quantum', base: st(7600, 96, 54, 98), armor: 260,
+    id: 'omega_machine', name: 'Omega Machine', model: 'omega_machine', element: 'quantum', base: st(5400, 96, 54, 98), armor: 260,
     profile: { weak: ['gravity', 'fire'], resist: ['physical'], immune: ['electric'] },
     skills: ['b_omega_beam', 'b_omega_summon', 'b_gravity_crush'], ai: 'boss', exp: 1400, credits: [1200, 1500], boss: true,
     drops: [{ item: 'quantum_chip', w: 40 }, { item: 'gpu', w: 20 }, { item: 'cpu', w: 20 }, { item: 'motherboard', w: 20 }], dropCount: [4, 6],

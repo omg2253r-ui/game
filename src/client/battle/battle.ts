@@ -392,7 +392,8 @@ export class Battle {
     if (this.driver.mode === 'single') foot.append(h('button', { class: 'btn sm', on: { click: () => this.autoPlan() } }, '⟳ Auto turn'));
     else {
       const ready = this.controllable().every((x) => this.plans[x.id]);
-      foot.append(h('button', { class: 'btn sm pri', disabled: !ready, on: { click: () => this.lockIn() } }, '🔒 Lock in'));
+      foot.append(h('button', { class: 'btn sm', id: 'coop-auto', on: { click: () => this.autoPlan() } }, '⟳ Auto'));
+      foot.append(h('button', { class: 'btn sm pri', id: 'coop-lock', disabled: !ready, on: { click: () => this.lockIn() } }, '🔒 Lock in'));
     }
     el.append(foot);
     if (this.driver.mode === 'coop') el.append(this.peerList());

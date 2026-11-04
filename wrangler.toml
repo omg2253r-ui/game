@@ -1,0 +1,30 @@
+# SCRAPBOUND — Cloudflare Workers (static assets + API + Durable Objects + D1)
+# Secrets: none are required. Never commit API tokens; CI uses the CLOUDFLARE_API_TOKEN secret.
+name = "scrapbound"
+main = "server/index.ts"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[[durable_objects.bindings]]
+name = "RAID_ROOM"
+class_name = "RaidRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RaidRoom"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "scrapbound"
+# Replace with the id printed by `wrangler d1 create scrapbound` (an id is not a secret).
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "server/migrations"
+
+[observability]
+enabled = true

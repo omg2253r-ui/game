@@ -77,7 +77,8 @@ export function raidWaves(dungeonId: string, difficulty: number, partyLevel: num
   const wave = (n: number, l: number): Encounter => ({ enemies: Array.from({ length: n }, () => ({ template: rng.pick(d.pool), level: l })) });
   const w1 = wave(Math.min(4, count), lv);
   const w2: Encounter = { enemies: [{ template: d.miniBoss, level: lv + 1, elite: true }, ...wave(Math.max(1, count - 2), lv).enemies] };
-  const boss: Encounter = { boss: true, enemies: [{ template: d.boss, level: d.levels[1] + off + 1 }] };
+  const bossLevel = Math.min(d.levels[1] + 1, Math.max(d.levels[0] + 2, partyLevel + 2)) + off;
+  const boss: Encounter = { boss: true, enemies: [{ template: d.boss, level: bossLevel }] };
   if (players >= 3 || difficulty >= 2) boss.enemies.push({ template: rng.pick(d.pool), level: lv });
   return [w1, w2, boss];
 }

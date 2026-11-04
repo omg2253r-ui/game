@@ -53,7 +53,7 @@ export class Game implements Menus.GameApi {
   controller: PlayerController | null = null;
   battle: Battle | null = null;
   layout: DungeonLayout | null = null;
-  private clock = new THREE.Clock();
+  private clock = new THREE.Timer();
   private minimap: HTMLCanvasElement | null = null;
   private promptEl: HTMLDivElement | null = null;
   private fpsEl: HTMLDivElement | null = null;
@@ -92,7 +92,8 @@ export class Game implements Menus.GameApi {
       if (s === 'open' && this.inCoopBattle) this.ui.toast('Reconnected', 'good');
     };
     this.setFps(!!store.save?.settings.showFps);
-    (window as unknown as { __game: Game }).__game = this;
+    (window as unknown as { __game: Game; __coop: typeof coop }).__game = this;
+    (window as unknown as { __coop: typeof coop }).__coop = coop;
   }
 
   async boot() {
@@ -113,6 +114,7 @@ export class Game implements Menus.GameApi {
 
   private loop = () => {
     requestAnimationFrame(this.loop);
+    this.clock.update();
     const dt = Math.min(0.05, this.clock.getDelta());
     this.interactCooldown = Math.max(0, this.interactCooldown - dt);
     if (this.mode === 'battle' && this.battle) {

@@ -54,13 +54,18 @@ export const DIFF_HP = [1, 1.35, 1.75, 2.3];
 export const DIFF_ATK = [1, 1.15, 1.3, 1.5];
 export const DIFF_DEF = [1, 1.1, 1.2, 1.35];
 
+/** global tuning knobs (see balance report in TEST_REPORT.md) */
+export const TUNING = { normalHp: 2.1, normalAtk: 2.0, bossHp: 0.8, bossAtk: 1.1 };
+
 export function enemyStats(templateId: string, level: number, difficulty: number, elite = false, partyScale = 1): Stats {
   const d = ENEMY_MAP[templateId];
   const g = 1 + 0.11 * (level - 1);
   const def = d.base;
+  const hpK = d.boss ? TUNING.bossHp : TUNING.normalHp;
+  const atkK = d.boss ? TUNING.bossAtk : TUNING.normalAtk;
   return {
-    hp: Math.round(def.hp * g * DIFF_HP[difficulty] * (elite ? 2.2 : 1) * partyScale),
-    atk: Math.round(def.atk * g * DIFF_ATK[difficulty] * (elite ? 1.25 : 1)),
+    hp: Math.round(def.hp * g * DIFF_HP[difficulty] * (elite ? 2.2 : 1) * partyScale * hpK),
+    atk: Math.round(def.atk * g * DIFF_ATK[difficulty] * (elite ? 1.25 : 1) * atkK),
     def: Math.round(def.def * (1 + 0.08 * (level - 1)) * DIFF_DEF[difficulty]),
     spd: Math.round(def.spd * (1 + 0.006 * (level - 1)) + (difficulty >= 2 ? 4 : 0)),
     critRate: def.critRate + difficulty * 0.02,

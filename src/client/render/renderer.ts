@@ -59,7 +59,7 @@ export class Renderer {
     gl.outputColorSpace = THREE.SRGBColorSpace;
     gl.toneMapping = THREE.ACESFilmicToneMapping;
     gl.toneMappingExposure = 1.05;
-    gl.shadowMap.type = THREE.PCFSoftShadowMap;
+    gl.shadowMap.type = THREE.PCFShadowMap;
     this.gl = gl;
     this.quality = quality;
     this.profile = profileFor(quality);
