@@ -1,0 +1,31 @@
+{
+  "name": "scrapbound",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SCRAPBOUND: Dungeon of Machines — 3D anime turn-based co-op RPG for the browser",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "wrangler dev --port 8787",
+    "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p server/tsconfig.json && vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p server/tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "node e2e/run-all.mjs",
+    "preview": "vite preview",
+    "db:migrate:local": "wrangler d1 migrations apply scrapbound --local",
+    "db:migrate:remote": "wrangler d1 migrations apply scrapbound --remote",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261104.1",
+    "@types/three": "^0.187.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.157.0"
+  }
+}

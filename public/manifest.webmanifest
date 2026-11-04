@@ -1,0 +1,10 @@
+{
+  "name": "SCRAPBOUND: Dungeon of Machines",
+  "short_name": "SCRAPBOUND",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#070a12",
+  "theme_color": "#070a12",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
