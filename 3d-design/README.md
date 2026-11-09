@@ -8,6 +8,7 @@
 | ------------------------------------ | ------------------------------------------------------------------------------------- |
 | [DESIGN.md](DESIGN.md)               | palette, typography, layout, wireframe, หลักการออกแบบ และสิ่งที่เปลี่ยนจากค่าเริ่มต้น |
 | [docs/services.md](docs/services.md) | API key และบริการภายนอกที่ต้องใช้ พร้อมวิธีตั้งค่า                                    |
+| [docs/deploy.md](docs/deploy.md)     | เปิดเป็นเว็บไซต์ฟรีด้วย Render + Supabase ทีละขั้น                                    |
 | [docs/roadmap.md](docs/roadmap.md)   | แผน phase ถัดไป (auth, ชำระเงิน, image-to-3D, rigging, gallery …)                     |
 | [docs/critique.md](docs/critique.md) | ผลตรวจหลังสร้าง: responsive, keyboard, reduced motion, contrast, บั๊กที่เจอและแก้     |
 | [docs/legal.md](docs/legal.md)       | สิทธิ์ในโมเดล, การกรองเนื้อหา, สิ่งที่ต้องให้ทนายตรวจ                                 |
@@ -61,6 +62,7 @@ pnpm worker                               # (ไม่บังคับ) worker
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `pnpm dev`                                     | API (Next.js, :3001) + เว็บ (Vite, :5173 proxy `/api`)                                                         |
 | `pnpm build` / `pnpm start`                    | build และรันแบบ production                                                                                     |
+| `pnpm build:single` / `pnpm start:single`      | build หน้าเว็บเข้าไปใน API แล้วรันเป็นบริการเดียว (แบบที่ใช้บน Render / Docker)                                |
 | `pnpm worker`                                  | BullMQ worker แยกโปรเซส (ต้องมี `REDIS_URL` + `DATABASE_URL`)                                                  |
 | `pnpm test`                                    | unit test (Vitest)                                                                                             |
 | `pnpm e2e`                                     | e2e ของ flow หลัก (Playwright) — หยุด `pnpm dev` ก่อน เพราะ Next.js ไม่ให้รัน dev server สองตัวในโฟลเดอร์เดียว |

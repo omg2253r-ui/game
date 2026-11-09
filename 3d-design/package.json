@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "pnpm --parallel --filter @3d-design/api --filter @3d-design/web dev",
     "build": "pnpm --filter @3d-design/web build && pnpm --filter @3d-design/api build",
+    "build:single": "pnpm --filter @3d-design/web build && node scripts/copy-web.mjs && pnpm --filter @3d-design/api build",
+    "start:single": "pnpm --filter @3d-design/api start:prod",
     "start": "pnpm --parallel --filter @3d-design/api --filter @3d-design/web start",
     "worker": "pnpm --filter @3d-design/api worker",
     "typecheck": "pnpm -r typecheck",

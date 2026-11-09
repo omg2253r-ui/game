@@ -22,6 +22,12 @@ const EnvSchema = z
     S3_BUCKET: z.string().optional(),
     S3_ACCESS_KEY_ID: z.string().optional(),
     S3_SECRET_ACCESS_KEY: z.string().optional(),
+    /**
+     * Redirect downloads to short-lived presigned URLs instead of streaming
+     * through the API. Off by default: it needs bucket CORS for the web origin,
+     * and not every S3-compatible store supports presigning.
+     */
+    S3_SIGNED_DOWNLOADS: bool.default(false),
 
     AI_PROVIDER: z.enum(['mock', 'meshy', 'tripo']).default('mock'),
     MESHY_API_KEY: z.string().optional(),
@@ -72,6 +78,21 @@ export function getConfig(): Config {
     throw new Error(`Invalid environment configuration:\n${lines.join('\n')}`);
   }
   const env = parsed.data;
+  if (env.NODE_ENV === 'production') {
+    // Hosts with an ephemeral disk (Render free, most containers) lose these on restart.
+    if (!env.DATABASE_URL)
+      console.warn(
+        '[config] DATABASE_URL not set: accounts and the library live in a local JSON file and are lost when the container restarts.',
+      );
+    if (env.STORAGE_DRIVER === 'local')
+      console.warn(
+        '[config] STORAGE_DRIVER=local: model files are lost when the container restarts. Use s3 (Supabase Storage, R2…).',
+      );
+    if (env.AI_PROVIDER === 'mock')
+      console.warn(
+        '[config] AI_PROVIDER=mock: models come from the procedural stand-in, not an AI model.',
+      );
+  }
   cached = {
     ...env,
     sessionSecret: env.SESSION_SECRET ?? 'dev-only-session-secret-change-me-0000000000',

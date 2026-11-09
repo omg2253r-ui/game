@@ -28,6 +28,10 @@ export class S3Storage implements Storage {
       region: o.region,
       forcePathStyle: true, // MinIO needs it; R2 and S3 accept it.
       credentials: { accessKeyId: o.accessKeyId, secretAccessKey: o.secretAccessKey },
+      // Recent AWS SDKs add CRC checksums to every upload by default; several
+      // S3-compatible stores reject them. Only send them when required.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     });
   }
 

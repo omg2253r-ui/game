@@ -5,9 +5,9 @@ import { getServices } from './services';
 import { AppError, type ModelRecord } from './types';
 
 export async function sendModelFile(model: ModelRecord): Promise<Response> {
-  const { storage } = await getServices();
+  const { storage, config } = await getServices();
   const disposition = attachmentHeader(model.name, model.id, 'glb');
-  if (storage.signedUrl) {
+  if (storage.signedUrl && config.S3_SIGNED_DOWNLOADS) {
     const url = await storage.signedUrl(
       model.fileKey,
       downloadName(model.name, model.id, 'glb'),

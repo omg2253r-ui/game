@@ -11,7 +11,8 @@
     "sample": "tsx scripts/make-samples.ts",
     "typecheck": "tsc -p tsconfig.json",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts"
+    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
+    "start:prod": "sh scripts/start.sh"
   },
   "dependencies": {
     "@3d-design/shared": "workspace:*",

@@ -5,3 +5,4 @@ dist
 pnpm-lock.yaml
 apps/api/drizzle/meta
 apps/web/public/samples
+apps/api/public
