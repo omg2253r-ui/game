@@ -1,0 +1,278 @@
+import type { Dict } from './th';
+
+export const en: Dict = {
+  'app.name': '3D Design',
+  'app.skip': 'Skip to main content',
+
+  'nav.create': 'Create',
+  'nav.library': 'Library',
+  'nav.menu': 'Menu',
+  'nav.terms': 'Terms of Use',
+  'nav.privacy': 'Privacy Policy',
+
+  'credits.balance': '{n} credits',
+  'credits.label': '{n} credits remaining',
+  'credits.unit': '{n} credits',
+
+  'prefs.theme.toDark': 'Use dark mode',
+  'prefs.theme.toLight': 'Use light mode',
+  'prefs.locale.switch': 'ไทย',
+  'prefs.locale.label': 'Switch language to Thai',
+
+  'home.title': 'Sculpt 3D models from a description, then download them ready to use',
+  'home.lede':
+    'Describe what you want in Thai or English. The model is shaped in a few minutes; check its size and polygon count on the turntable, then download a GLB for Unity, Unreal, Godot or Roblox.',
+  'home.promptLabel': 'Describe what to sculpt',
+  'home.promptPlaceholder': 'e.g. a mushroom-shaped desk lamp in cream ceramic',
+  'home.start': 'Start sculpting',
+  'home.tryTemplates': 'Try',
+  'home.sampleCaption': 'A sample made by this system: magic sword, stylized',
+  'home.steps': 'Three steps',
+  'home.step1.title': 'Describe the object',
+  'home.step1.body':
+    'Name its shape, material and colour. The more specific, the closer the result.',
+  'home.step2.title': 'Pick a style and quality',
+  'home.step2.body':
+    'Draft to try an idea fast, High for production. The credit cost is shown before you commit.',
+  'home.step3.title': 'Check, then download',
+  'home.step3.body':
+    'Rotate, measure, inspect the wireframe and engine compatibility, then download the GLB.',
+
+  'template.sword': 'Magic sword',
+  'template.sword.prompt':
+    'A magic sword with a polished steel blade, blue leather-wrapped grip and a glowing gem',
+  'template.tree': 'Fantasy tree',
+  'template.tree.prompt':
+    'A fantasy tree with a twisted trunk, teal-green leaves and glowing yellow fruit',
+  'template.car': 'Cyberpunk car',
+  'template.car.prompt':
+    'A cyberpunk car with a black metal body, pink neon side strips and a rear spoiler',
+
+  'onboarding.title': 'Get started in 3 steps',
+  'onboarding.progress': 'Step {n} of 3',
+  'onboarding.step1': 'Pick a template or write your own description below.',
+  'onboarding.step2': 'Choose a style and quality. The credit cost appears on the create button.',
+  'onboarding.step3':
+    'Press Create model and watch progress on the turntable. When it is done, download the GLB from the right panel.',
+  'onboarding.next': 'Next',
+  'onboarding.done': 'Got it',
+  'onboarding.skip': 'Skip tips',
+
+  'studio.title': 'Create model',
+  'studio.tabs.label': 'Controls',
+  'studio.tabs.create': 'Create',
+  'studio.tabs.inspect': 'Inspect',
+  'studio.tabs.export': 'Export',
+  'studio.mode.text': 'From text',
+
+  'prompt.label': 'Description',
+  'prompt.placeholder':
+    'Describe the object, its shape, material and colour, e.g. an old wooden treasure chest with gold trim',
+  'prompt.count': '{n}/{max}',
+  'prompt.tooShort': 'Type at least {min} characters',
+  'prompt.helper.title': 'Tips for a good description',
+  'prompt.helper.body':
+    'Lead with the main object, then add shape, material and colour. Describe one object at a time, and describe looks instead of naming copyrighted characters.',
+  'prompt.helper.add': 'Add {part}',
+  'prompt.helper.material': 'material',
+  'prompt.helper.material.text': 'made of metal',
+  'prompt.helper.color': 'colour',
+  'prompt.helper.color.text': 'deep blue',
+  'prompt.helper.shape': 'shape',
+  'prompt.helper.shape.text': 'long and tapered',
+  'prompt.helper.mood': 'mood',
+  'prompt.helper.mood.text': 'fantasy style',
+  'prompt.blocked.copyrighted':
+    'The description names a copyrighted character ("{term}"). Describe its shape, colours and materials instead.',
+  'prompt.blocked.prohibited':
+    'The description contains content that is not allowed ("{term}"). Edit it before creating.',
+
+  'style.label': 'Style',
+  'style.realistic': 'Realistic',
+  'style.low-poly': 'Low-poly',
+  'style.stylized': 'Stylized',
+  'style.anime': 'Anime',
+  'style.voxel': 'Voxel',
+
+  'quality.label': 'Quality',
+  'quality.draft': 'Draft',
+  'quality.standard': 'Standard',
+  'quality.high': 'High',
+  'quality.detail': 'Up to {tris} triangles · {tex}px textures · ~{eta}',
+
+  'advanced.label': 'Advanced options',
+  'advanced.negative': 'Leave out (negative prompt)',
+  'advanced.negativePlaceholder': 'e.g. text, pedestal, red',
+  'advanced.seed': 'Seed',
+  'advanced.seedHelp':
+    'The same seed with the same description gives the same result. Leave empty for random.',
+  'advanced.seedRandom': 'Random seed',
+  'advanced.seedPlaceholder': 'Random',
+
+  'generate.button': 'Create model · {cost}',
+  'generate.busy': 'Creating…',
+  'generate.confirm.title': 'Create this model?',
+  'generate.confirm.body':
+    'This uses {cost} of your {balance}, leaving {after}. If it fails, the credits are refunded automatically.',
+  'generate.confirm.summary': '{style} · {quality} quality',
+  'generate.confirm.ok': 'Create model ({cost})',
+  'generate.confirm.cancel': 'Cancel',
+  'generate.notEnough':
+    'Not enough credits: this needs {cost} and you have {balance}. Switch to Draft or wait for a top-up.',
+  'generate.started': 'Started. {cost} used',
+  'generate.done': 'Model created',
+  'generate.failed': 'Creation failed. {cost} refunded',
+
+  'stage.queued': 'In queue',
+  'stage.interpreting': 'Reading description',
+  'stage.shaping': 'Shaping',
+  'stage.texturing': 'Applying materials and textures',
+  'stage.finalizing': 'Saving file',
+  'stage.done': 'Done',
+  'progress.label': 'Model creation progress',
+  'progress.queue': 'Position {n} in queue',
+  'progress.eta': 'About {t} left',
+  'progress.seconds': '{n} s',
+  'progress.minutes': '{n} min',
+
+  'viewer.toolbar': 'Camera controls',
+  'viewer.roleDescription': '3D viewer',
+  'viewer.label': '3D model view. Use the arrow keys to rotate and + or − to zoom',
+  'viewer.empty': 'No model yet. Try typing your first description',
+  'viewer.loading': 'Loading model…',
+  'viewer.loadFailed':
+    'The model file could not be opened. It may have been deleted; open it again from the library.',
+  'viewer.noWebgl':
+    'This browser cannot display 3D (no WebGL). Open the page in a current Chrome, Edge, Firefox or Safari.',
+  'viewer.rotateLeft': 'Rotate left',
+  'viewer.rotateRight': 'Rotate right',
+  'viewer.zoomIn': 'Zoom in',
+  'viewer.zoomOut': 'Zoom out',
+  'viewer.reset': 'Reset camera',
+  'viewer.autoRotate': 'Spin turntable',
+  'viewer.wireframe': 'Show wireframe',
+  'viewer.clay': 'View as clay',
+  'viewer.measure': 'Measure',
+  'viewer.lighting': 'Lighting',
+  'viewer.lighting.studio': 'Studio',
+  'viewer.lighting.outdoor': 'Outdoor',
+  'viewer.lighting.dramatic': 'Side light',
+  'viewer.sampleBadge': 'Made by the mock generator (not AI). Set AI_PROVIDER to use a real model.',
+
+  'inspect.empty': 'Stats and export options appear here once a model is created.',
+  'inspect.name': 'Model name',
+  'inspect.rename': 'Rename',
+  'inspect.renamed': 'Renamed',
+  'inspect.stats': 'Mesh stats',
+  'stats.triangles': 'Triangles',
+  'stats.vertices': 'Vertices',
+  'stats.materials': 'Materials',
+  'stats.fileSize': 'File size',
+  'stats.texture': 'Textures',
+  'stats.textureNone': 'None (material colours only)',
+  'stats.bounds': 'Real size (W × H × D)',
+  'inspect.compat': 'Engine compatibility',
+  'compat.ready': 'Ready',
+  'compat.needs-step': 'Extra step',
+  'compat.over-limit': 'Over limit',
+  'compat.unity.gltfast': 'Import GLB with the glTFast package',
+  'compat.unreal.ready': 'Imports GLB directly (Interchange)',
+  'compat.godot.ready': 'Imports GLB directly',
+  'compat.roblox.ready': 'Within the {max}-triangle mesh limit',
+  'compat.roblox.tooMany':
+    'Over {max} triangles per mesh. Recreate at Draft quality or in Low-poly style.',
+  'compat.mobile.heavy': 'Heavy for mobile; reduce polygons first',
+  'inspect.tags': 'Tags',
+  'inspect.tagsPlaceholder': 'Type a tag and press Enter',
+  'inspect.tagRemove': 'Remove tag {tag}',
+  'inspect.recipe': 'Recipe',
+  'inspect.recipe.reuse': 'Create again with these settings',
+  'inspect.recipe.reused': 'Description, style, quality and seed copied to the left panel',
+
+  'export.title': 'Export',
+  'export.download': 'Download GLB',
+  'export.downloading': 'Preparing file…',
+  'export.downloaded': 'GLB downloaded',
+  'export.formats': 'FBX, OBJ, USDZ and STL arrive in the next phase.',
+  'export.license': 'A licence notice is embedded in the GLB asset.copyright field.',
+  'export.share': 'Share link',
+  'export.shareHelp':
+    'Anyone with the link can view and download this model. Turning it off breaks the old link immediately.',
+  'export.shareOn': 'Share link turned on',
+  'export.shareOff': 'Share link turned off',
+  'export.copyLink': 'Copy link',
+  'export.copied': 'Link copied',
+  'export.commercial': 'Allow others to use commercially',
+  'export.commercialHelp':
+    'Applies to people who get the file from your share link. The licence inside the file updates to match.',
+  'export.commercialOn': 'Commercial use allowed',
+  'export.commercialOff': 'Commercial use no longer allowed',
+
+  'library.title': 'Library',
+  'library.count': '{n} models',
+  'library.search': 'Search names, descriptions or tags',
+  'library.allTags': 'All',
+  'library.filterTags': 'Filter by tag',
+  'library.empty': 'No models yet. Try typing your first description',
+  'library.emptySearch': 'No models match "{q}". Try another word or clear the filters.',
+  'library.clearFilters': 'Clear filters',
+  'library.create': 'Create model',
+  'library.open': 'Open {name}',
+  'library.openShort': 'Open',
+  'library.download': 'Download GLB of {name}',
+  'library.share': 'Copy share link of {name}',
+  'library.delete': 'Delete {name}',
+  'library.delete.title': 'Delete "{name}"?',
+  'library.delete.body':
+    'The model file, thumbnail and share link are removed permanently. This cannot be undone and credits are not refunded.',
+  'library.delete.ok': 'Delete model',
+  'library.delete.cancel': 'Keep it',
+  'library.deleted': 'Model deleted',
+  'library.shareEnable.title': 'Turn on the share link for "{name}"?',
+  'library.shareEnable.body':
+    'Anyone with the link can view and download this model. You can turn it off any time from the Export panel.',
+  'library.shareEnable.ok': 'Turn on and copy link',
+  'library.noThumb': 'No thumbnail yet. Open the model to create one',
+
+  'share.title': 'Shared model',
+  'share.commercialYes': 'The creator allows commercial use',
+  'share.commercialNo': 'Personal, non-commercial use only',
+  'share.makeYours': 'Create your own model',
+  'share.notFound':
+    'This link no longer works. The owner may have turned off sharing or deleted the model.',
+
+  'error.title': 'This page failed to render',
+  'error.body':
+    'Something went wrong while drawing the page. Your data is safe. Reload to try again.',
+  'error.reload': 'Reload page',
+  'error.network': 'Cannot reach the server. Check your internet connection and try again.',
+  'error.invalid_request': 'Some input is invalid ({field}). Check the fields and try again.',
+  'error.unauthorized': 'Your session expired. Reload the page to start a new one.',
+  'error.forbidden': 'The request was refused. Open the site from its main address and try again.',
+  'error.not_found': 'Not found. It may have been deleted.',
+  'error.insufficient_credits':
+    'Not enough credits: this needs {required} and you have {balance}. Lower the quality or wait for a top-up.',
+  'error.rate_limited': 'Too many requests. Wait {retryAfter} seconds and try again.',
+  'error.content_copyrighted':
+    'The description names a copyrighted character ("{term}"). Describe its shape, colours and materials instead.',
+  'error.content_prohibited':
+    'The description contains content that is not allowed ("{term}"). Edit it before creating.',
+  'error.provider_failed':
+    'The model generator failed. Your credits were refunded. Adjust the description or try again.',
+  'error.provider_timeout':
+    'Creation took too long. Your credits were refunded. Try Draft quality first.',
+  'error.payload_too_large': 'The file or text is larger than allowed.',
+  'error.unsupported_media_type': 'Unsupported file type. Use PNG, JPG or WebP.',
+  'error.internal': 'The server hit an error. Try again in a moment.',
+
+  'notFound.title': 'Page not found',
+  'notFound.body': 'This address does not exist. Head back to the studio to create a model.',
+  'notFound.back': 'Go to Create',
+
+  'common.close': 'Close',
+  'common.cancel': 'Cancel',
+  'common.save': 'Save',
+  'common.on': 'On',
+  'common.off': 'Off',
+  'toast.region': 'Notifications',
+};

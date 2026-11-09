@@ -1,0 +1,37 @@
+{
+  "name": "3d-design",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @3d-design/api --filter @3d-design/web dev",
+    "build": "pnpm --filter @3d-design/web build && pnpm --filter @3d-design/api build",
+    "start": "pnpm --parallel --filter @3d-design/api --filter @3d-design/web start",
+    "worker": "pnpm --filter @3d-design/api worker",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "db:generate": "pnpm --filter @3d-design/api db:generate",
+    "db:migrate": "pnpm --filter @3d-design/api db:migrate",
+    "sample": "pnpm --filter @3d-design/api sample"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "1.63.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^4.1.12"
+  }
+}

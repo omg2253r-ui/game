@@ -1,0 +1,41 @@
+{
+  "name": "@3d-design/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "worker": "node --env-file-if-exists=.env --import tsx src/worker.ts",
+    "sample": "tsx scripts/make-samples.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts"
+  },
+  "dependencies": {
+    "@3d-design/shared": "workspace:*",
+    "@aws-sdk/client-s3": "^3.1164.0",
+    "@aws-sdk/s3-request-presigner": "^3.1164.0",
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "bullmq": "^6.7.2",
+    "drizzle-orm": "^0.45.4",
+    "ioredis": "^6.0.0",
+    "next": "16.4.5",
+    "pg": "^8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "three": "0.187.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/three": "0.187.0",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}
