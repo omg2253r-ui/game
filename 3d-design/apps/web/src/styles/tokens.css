@@ -1,0 +1,59 @@
+/*
+ * Design tokens — the only place colours, type, spacing, radius, shadow and
+ * z-index are defined. Semantic CSS variables switch per theme; Tailwind's
+ * @theme maps them to utilities (bg-surface, text-muted, rounded-control…).
+ * See DESIGN.md for the reasoning behind each value.
+ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #131517; /* Graphite — studio wall */
+  --surface: #1c1f22; /* Workbench — tool trays */
+  --surface-2: #262a2e; /* inputs, secondary buttons */
+  --line: #3a4046; /* pencil line */
+  --line-strong: #6d747b; /* ≥ 3:1 on surfaces: control boundaries (WCAG 1.4.11) */
+  --text: #ece7dd; /* Plaster */
+  --text-muted: #a9acad;
+  --accent: #f2c230; /* Tape yellow */
+  --accent-hover: #f7d055;
+  --accent-ink: #f2c230; /* accent used as text/lines */
+  --on-accent: #1a1500;
+  --danger: #f0675c; /* Kiln red */
+  --danger-surface: #3a1f1d;
+  --ok: #86c7a0; /* patina */
+  --viewer: #34383c; /* Grey sweep */
+  --viewer-ink: #8f969c; /* turntable ticks */
+  --scrim: rgb(8 9 10 / 0.72);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: #ece9e3;
+  --surface: #f7f5f1;
+  --surface-2: #ffffff;
+  --line: #d3cec5;
+  --line-strong: #89847b;
+  --text: #1b1d1f;
+  --text-muted: #55595d;
+  --accent: #f2c230;
+  --accent-hover: #e6b41c;
+  --accent-ink: #7a5c00;
+  --on-accent: #1a1500;
+  --danger: #b42318;
+  --danger-surface: #fbe9e7;
+  --ok: #2f7d55;
+  --viewer: #c9c6c0;
+  --viewer-ink: #6f6c66;
+  --scrim: rgb(27 29 31 / 0.5);
+}
+
+:root {
+  --z-viewer-ui: 10;
+  --z-header: 20;
+  --z-modal: 40;
+  --z-toast: 50;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-enter: 240ms;
+  --dur-quick: 140ms;
+}

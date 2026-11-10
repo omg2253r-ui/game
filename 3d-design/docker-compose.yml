@@ -1,0 +1,50 @@
+# Local infrastructure for the production-shaped setup.
+#   docker compose up -d          → Postgres + Redis
+#   docker compose --profile s3 up -d   → also MinIO (S3-compatible, stands in for R2)
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: design3d
+      POSTGRES_PASSWORD: design3d
+      POSTGRES_DB: design3d
+    ports: ['5432:5432']
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U design3d']
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    ports: ['6379:6379']
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+
+  minio:
+    profiles: [s3]
+    image: minio/minio:latest
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: design3d
+      MINIO_ROOT_PASSWORD: design3d-secret
+    ports: ['9000:9000', '9001:9001']
+    volumes: [miniodata:/data]
+
+  # Creates the private bucket once MinIO is up.
+  minio-init:
+    profiles: [s3]
+    image: minio/mc:latest
+    depends_on: [minio]
+    entrypoint: >
+      sh -c "until mc alias set local http://minio:9000 design3d design3d-secret; do sleep 1; done;
+             mc mb --ignore-existing local/design3d-models"
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

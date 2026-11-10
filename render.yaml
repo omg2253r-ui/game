@@ -1,0 +1,40 @@
+# Render Blueprint for the 3D Design app in ./3d-design (free plan).
+# Render dashboard → New → Blueprint → pick this repository.
+# Secrets marked `sync: false` are asked for once when the Blueprint is created.
+# Step-by-step guide: 3d-design/docs/deploy.md
+services:
+  - type: web
+    name: 3d-design
+    runtime: docker
+    plan: free
+    # Same region as the Supabase project keeps database round-trips short.
+    region: singapore
+    dockerfilePath: ./3d-design/Dockerfile
+    dockerContext: ./3d-design
+    healthCheckPath: /api/health
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: TRUST_PROXY
+        value: "true"
+      # Supabase → Connect → Session pooler, then append ?uselibpqcompat=true&sslmode=require
+      - key: DATABASE_URL
+        sync: false
+      - key: STORAGE_DRIVER
+        value: s3
+      # Supabase → Storage → Settings → S3 Connection
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_BUCKET
+        value: models
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      # mock = free offline stand-in (not AI). Switch to meshy/tripo and add the key later.
+      - key: AI_PROVIDER
+        value: mock
+      - key: MOCK_DELAY_SCALE
+        value: "1"
