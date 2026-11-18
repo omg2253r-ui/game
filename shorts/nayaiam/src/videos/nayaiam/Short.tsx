@@ -97,8 +97,8 @@ const dprOverride = () => (getInputProps() as { post?: { dpr?: number } }).post?
 const resOf = () => (getInputProps() as { post?: { res?: number } }).post?.res ?? 1;
 const ShotView: React.FC<{ id: number; kit: Kit; alpha: number }> = ({ id, kit, alpha }) => (
   <AbsoluteFill style={{ opacity: alpha }}>
-   <div style={{ width: 1080 * resOf(), height: 1920 * resOf(), transform: `scale(${1 / resOf()})`, transformOrigin: "0 0" }}>
-    <ThreeCanvas width={1080 * resOf()} height={1920 * resOf()} {...(dprOverride() ? { dpr: dprOverride() } : {})} shadows gl={{ antialias: false, stencil: false, powerPreference: "high-performance", toneMappingExposure: 1.0 }}
+   <div style={{ width: Math.round(1080 * resOf()), height: Math.round(1920 * resOf()), transform: `scale(${1 / resOf()})`, transformOrigin: "0 0" }}>
+    <ThreeCanvas width={Math.round(1080 * resOf())} height={Math.round(1920 * resOf())} {...(dprOverride() ? { dpr: dprOverride() } : {})} shadows gl={{ antialias: false, stencil: false, powerPreference: "high-performance", toneMappingExposure: 1.0 }}
       camera={{ fov: 40, near: 0.2, far: 1500 }}>
       <Inner id={id} kit={kit} />
     </ThreeCanvas>
