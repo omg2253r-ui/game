@@ -13,6 +13,7 @@ import { InkPass, noInkFallback } from "./ink";
 import { LensBlur, GrainEffect } from "./lensblur";
 import { GradeEffect, GRADES, GRADE_STRENGTH, gradeFor } from "./grade";
 import { Kit } from "./build";
+import { QUALITY } from "./cast";
 import { TOTAL, FLASH_AT, SHOTS, LINES, layersAt, dofAt } from "./story";
 import "@fontsource/kanit/600.css";
 import "@fontsource/kanit/700.css";
@@ -21,8 +22,8 @@ import "@fontsource/kanit/500.css";
 export const NAYAIAM_FRAMES = TOTAL;
 
 /** A/B switches for test stills only (Remotion inputProps `{ post: { ink: false, ... } }`); everything is on by default. */
-type PostToggles = { ink: boolean; lens: boolean; pre: boolean; bloom: boolean; grade: boolean; grain: boolean; msaa: number; shadow: number };
-const toggles = (): PostToggles => ({ ink: true, lens: true, pre: true, bloom: true, grade: true, grain: false, msaa: 4, shadow: 4096, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
+type PostToggles = { ink: boolean; lens: boolean; pre: boolean; bloom: boolean; grade: boolean; grain: boolean; msaa: number; shadow: number; tier: number };
+const toggles = (): PostToggles => ({ ink: true, lens: true, pre: true, bloom: true, grade: true, grain: false, msaa: 4, shadow: 4096, tier: 1, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
 
 /** Bloom for emissive sources only (depth.md 6.4). Its MIP chain always starts at 540x960 (half of 1080x1920),
  *  whatever the output size, so the glow keeps the same size relative to the frame (e-fold ~30 px at 1080p,
@@ -47,7 +48,7 @@ const useKit = () => {
 const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
   const f = useCurrentFrame();
   const { camera, scene } = useThree();
-  const world = useMemo(() => new World(kit, toggles().shadow), [kit]);
+  const world = useMemo(() => { QUALITY.tier = toggles().tier; return new World(kit, toggles().shadow); }, [kit]);
   const target = useMemo(() => new THREE.Vector3(), []);
   const on = useMemo(toggles, []);
   const fx = useMemo(() => ({
