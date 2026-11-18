@@ -161,7 +161,7 @@ const CAMS: Record<number, Key[]> = {
     { f: 1590, s: (f) => dolly([-46, 30, -26], [12, 3, 38], pushK(f, 1590, 0.0025), { fov: 44 }) },
   ],
   12: [ // the twist: the district sign arrives; the school was already there, waiting
-    { f: 1734, s: (f) => dolly(add(G, [-1.4, 1.5, -10.5]), add(G, [3.2, 2.6, 3]), pushK(f, 1734, 0.0018), { fov: 42 }) },
+    { f: 1734, s: (f) => dolly(add(G, [0.6, 1.5, -10.5]), add(G, [2.4, 2.4, 3]), pushK(f, 1734, 0.0018), { fov: 42 }) },
     { f: F(T_DISTRICT) - 10, dur: 22, s: (f) => dolly(add(G, [-2.0, 1.8, -12]), add(G, [4.6, 3.6, 4]), pushK(f, F(T_DISTRICT), 0.0015), { fov: 46, roll: 0.03 }) },
     { f: F(wordAt("end", "เหมือน")) - 3, cut: true, s: (f) => dolly(add(G, [-1.6, 1.3, -4.4]), add(G, [0.4, 1.35, 0]), pushK(f, 1925, 0.0025, 0.006, 35), { fov: 38, roll: -0.035 }) },
   ],
