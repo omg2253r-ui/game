@@ -412,7 +412,7 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
     case "open": opening(out, cam, t); break;
     case "campus": campus(out, cam, t); break;
   }
-  if (id === 12) burst(out, t, T_DISTRICT, [17, 4.2, 14.6], 3.2, 0.45);
+  if (id === 12) burst(out, t, T_DISTRICT, [9.5, 4.2, 16.6], 3.2, 0.45);
   return out;
 };
 export { FPS, LINES };
