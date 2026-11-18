@@ -128,7 +128,7 @@ const CAMS: Record<number, Key[]> = {
     { f: F(wordAt("setting", "ของอำเภอท่าใหม่")) - 14, dur: 36, s: (f) => dolly([30, 20, 6], [-16, 1, -34], pushK(f, 270, 0.002), { fov: 42, roll: -0.03 }) },
   ],
   3: [ // the kid at the roadside, the road running off to a far school
-    { f: 350, s: (f) => dolly(add(KIDROAD, [-6, 1.4, 0.6]), add(KIDROAD, [20, 0.9, -4]), pushK(f, 350, 0.0018), { fov: 40 }) },
+    { f: 350, s: (f) => dolly(add(KIDROAD, [-7.8, 1.5, 0.3]), add(KIDROAD, [20, 1.0, -2.6]), pushK(f, 350, 0.0018), { fov: 40 }) },
     { f: F(wordAt("problem", "ต้องเดินทาง")) - 4, cut: true, s: (f) => dolly(add(KIDROAD, [3.4, 1.05, 1.6]), add(KIDROAD, [0, 1.0, 0]), pushK(f, 440, 0.0025, 0.006, 30), { fov: 36, roll: 0.035 }) },
   ],
   4: [ // villagers gather in front of the temple
