@@ -960,7 +960,11 @@ export const TEACHER: Outfit = { jacket: "#cfe0f0", pants: "#3b3f52", boots: "#2
 
 /** Thai text on a canvas in Kanit (loaded by Short.tsx before anything is drawn) */
 export const thai = (g: CanvasRenderingContext2D, text: string, x: number, y: number, size: number, col: string, weight = 600, align: CanvasTextAlign = "center") => {
-  g.font = `${weight} ${size}px Kanit, Loma, sans-serif`; g.textAlign = align; g.textBaseline = "middle"; g.fillStyle = col; g.fillText(text, x, y);
+  g.font = `${weight} ${size}px Kanit, Loma, sans-serif`; g.textAlign = align; g.textBaseline = "middle"; g.fillStyle = col;
+  // shrink to fit the canvas with a margin (a sign's name must never run off its board)
+  const maxW = g.canvas.width * 0.88, w = g.measureText(text).width;
+  if (w > maxW) g.font = `${weight} ${Math.floor((size * maxW) / w)}px Kanit, Loma, sans-serif`;
+  g.fillText(text, x, y);
 };
 /** the petition / the ministry's letter on a 400 x 520 canvas; stamp 0..1 = red "approved" seal fades in */
 export const fxDoc = (p: Pen, stamp = 0) => {
