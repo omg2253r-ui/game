@@ -92,12 +92,17 @@ const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
 
 /** test stills only: inputProps `{ post: { dpr: 0.5 } }` forces the WebGL buffer size (R3F clamps dpr to >= 1 by default) */
 const dprOverride = () => (getInputProps() as { post?: { dpr?: number } }).post?.dpr;
+/** WebGL buffer scale (inputProps post.res): the canvas is drawn at 1080*res x 1920*res and CSS-scaled to the frame,
+ *  for software-GL renders where every pixel counts (R3F ignores dpr < 1) */
+const resOf = () => (getInputProps() as { post?: { res?: number } }).post?.res ?? 1;
 const ShotView: React.FC<{ id: number; kit: Kit; alpha: number }> = ({ id, kit, alpha }) => (
   <AbsoluteFill style={{ opacity: alpha }}>
-    <ThreeCanvas width={1080} height={1920} {...(dprOverride() ? { dpr: dprOverride() } : {})} shadows gl={{ antialias: false, stencil: false, powerPreference: "high-performance", toneMappingExposure: 1.0 }}
+   <div style={{ width: 1080 * resOf(), height: 1920 * resOf(), transform: `scale(${1 / resOf()})`, transformOrigin: "0 0" }}>
+    <ThreeCanvas width={1080 * resOf()} height={1920 * resOf()} {...(dprOverride() ? { dpr: dprOverride() } : {})} shadows gl={{ antialias: false, stencil: false, powerPreference: "high-performance", toneMappingExposure: 1.0 }}
       camera={{ fov: 40, near: 0.2, far: 1500 }}>
       <Inner id={id} kit={kit} />
     </ThreeCanvas>
+   </div>
   </AbsoluteFill>
 );
 
