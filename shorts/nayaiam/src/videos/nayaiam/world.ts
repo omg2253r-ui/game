@@ -427,7 +427,7 @@ export class World {
       b.add(boxGeo(V(-9, 0, -4), V(9, 6.8, 4), 3), M.cream, m);
       gable(b, m, 18, 8, 6.8, 2.6, 0.6, M.schoolRoof, 3, M.cream);
       const [kx, , kz] = KIDROAD;
-      const sx = kx + 6.5, sz = kz - 1.2, yaw = -Math.PI / 2 + 0.75;
+      const sx = kx + 9, sz = kz - 3.4, yaw = -Math.PI / 2 + 0.75;
       b.add(boxGeo(V(sx - 0.06, 0, sz - 0.06), V(sx + 0.06, 1.9, sz + 0.06)), M.post);
       const ar = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.49), unlit(arrowSign()));
       ar.position.set(sx, 1.65, sz); ar.rotation.y = yaw; ar.translateZ(0.04); ar.layers.set(NOINK); signsAll.add(ar);

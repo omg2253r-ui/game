@@ -71,7 +71,7 @@ export const SHOTS: ShotDef[] = [
   { id: 9, a: 1150, b: 1376, light: "day", era: "then", crowd: "build" },
   { id: 10, a: 1376, b: 1590, light: "day", era: "then", crowd: "open" },
   { id: 11, a: 1590, b: 1734, light: "golden", era: "now", crowd: "campus", sunAz: 145, sunEl: 14 },
-  { id: 12, a: 1734, b: TOTAL, light: "golden", era: "now", crowd: "wait", sunAz: 35, sunEl: 10 },
+  { id: 12, a: 1734, b: TOTAL, light: "golden", era: "now", crowd: "wait", sunAz: 150, sunEl: 13 },
 ];
 export const XFADE: Record<number, number> = { 3: 6, 7: 6, 9: 6, 10: 8, 11: 10, 12: 8 };
 export const FLASH_AT = 126;
@@ -120,7 +120,7 @@ const add = (a: V3, b: V3): V3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 const P = PLOT, G = GATE;
 const CAMS: Record<number, Key[]> = {
   1: [ // hook: low on the gate sign + two students, then up over today's campus
-    { f: 0, s: (f) => dolly(add(G, [-0.9, 1.35, -9.4]), add(G, [0.2, 1.75, 0]), pushK(f, 0, 0.003), { fov: 40, roll: -0.03 }) },
+    { f: 0, s: (f) => dolly(add(G, [0.3, 1.4, -11.2]), add(G, [0.3, 1.8, 0]), pushK(f, 0, 0.003), { fov: 40, roll: -0.03 }) },
     { f: 64, dur: 40, s: (f) => dolly(add(G, [-9, 9.5, -12]), add(G, [8, 3, 26]), pushK(f, 64, 0.002), { fov: 44, roll: 0.02 }) },
   ],
   2: [ // 1983: the village, the temple and the empty plot from the air
@@ -128,7 +128,7 @@ const CAMS: Record<number, Key[]> = {
     { f: F(wordAt("setting", "ของอำเภอท่าใหม่")) - 14, dur: 36, s: (f) => dolly([30, 20, 6], [-16, 1, -34], pushK(f, 270, 0.002), { fov: 42, roll: -0.03 }) },
   ],
   3: [ // the kid at the roadside, the road running off to a far school
-    { f: 350, s: (f) => dolly(add(KIDROAD, [-5.2, 1.35, 1.3]), add(KIDROAD, [20, 1.0, -1.6]), pushK(f, 350, 0.0018), { fov: 40 }) },
+    { f: 350, s: (f) => dolly(add(KIDROAD, [-6, 1.4, 0.6]), add(KIDROAD, [20, 0.9, -4]), pushK(f, 350, 0.0018), { fov: 40 }) },
     { f: F(wordAt("problem", "ต้องเดินทาง")) - 4, cut: true, s: (f) => dolly(add(KIDROAD, [3.4, 1.05, 1.6]), add(KIDROAD, [0, 1.0, 0]), pushK(f, 440, 0.0025, 0.006, 30), { fov: 36, roll: 0.035 }) },
   ],
   4: [ // villagers gather in front of the temple
