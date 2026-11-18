@@ -1,0 +1,22 @@
+{
+  "name": "nayaiam-short",
+  "private": true,
+  "type": "module",
+  "scripts": { "tsc": "tsc --noEmit" },
+  "dependencies": {
+    "remotion": "4.0.290",
+    "@remotion/cli": "4.0.290",
+    "@remotion/three": "4.0.290",
+    "@remotion/bundler": "4.0.290",
+    "@remotion/renderer": "4.0.290",
+    "three": "0.175.0",
+    "@react-three/fiber": "9.1.2",
+    "@react-three/postprocessing": "3.0.4",
+    "postprocessing": "6.37.2",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "@fontsource/sarabun": "5.1.0",
+    "@fontsource/kanit": "5.1.0"
+  },
+  "devDependencies": { "@types/three": "0.175.0", "@types/react": "19.0.10", "typescript": "5.7.3" }
+}
