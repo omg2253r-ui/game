@@ -1,6 +1,6 @@
 # Cue sheet (67.000 s, 48 kHz)
 
-Music: original pentatonic score, about -10 LU under the voice, ducked 4 dB while it speaks. Effects about -12 LU. Master -15.00 LUFS, true peak -1.18 dBTP.
+Music: original pentatonic score, about -10 LU under the voice, ducked 4 dB while it speaks. Effects about -12 LU. Master -15.01 LUFS, true peak -1.58 dBTP.
 
 | time (s) | frame | cue |
 |---|---|---|
