@@ -52,7 +52,7 @@ export const DESK: V3 = [300, 0, 300];      // insert set: the desk where the re
 export const KIDROAD: V3 = [-70, 0, 6.2];   // the kid at the roadside looking down the long road (+x)
 export const CAMPUS: V3 = [12, 0, 42];      // today's campus on Sukhumvit Road
 export const GATE: V3 = [1.5, 0, 9.5];      // the school's name sign at the gate (face toward -z, the road)
-export const DSIGN: V3 = [9.5, 0, 17];       // the district sign that arrives nine years later
+export const DSIGN: V3 = [6.2, 0, 18];       // the district sign that arrives nine years later
 
 // ---------------- shots ----------------
 export type Light = "day" | "golden";
@@ -161,8 +161,8 @@ const CAMS: Record<number, Key[]> = {
     { f: 1590, s: (f) => dolly([-46, 30, -26], [12, 3, 38], pushK(f, 1590, 0.0025), { fov: 44 }) },
   ],
   12: [ // the twist: the district sign arrives; the school was already there, waiting
-    { f: 1734, s: (f) => dolly(add(G, [0.6, 1.5, -10.5]), add(G, [2.4, 2.4, 3]), pushK(f, 1734, 0.0018), { fov: 42 }) },
-    { f: F(T_DISTRICT) - 10, dur: 22, s: (f) => dolly(add(G, [-2.0, 1.8, -12]), add(G, [4.6, 3.6, 4]), pushK(f, F(T_DISTRICT), 0.0015), { fov: 46, roll: 0.03 }) },
+    { f: 1734, s: (f) => dolly(add(G, [0.9, 1.5, -10.5]), add(G, [0.3, 2.2, 3]), pushK(f, 1734, 0.0018), { fov: 42 }) },
+    { f: F(T_DISTRICT) - 10, dur: 22, s: (f) => dolly(add(G, [2.2, 1.9, -16]), add(G, [2.3, 2.8, 6]), pushK(f, F(T_DISTRICT), 0.0015), { fov: 54, roll: 0.03 }) },
     { f: F(wordAt("end", "เหมือน")) - 3, cut: true, s: (f) => dolly(add(G, [-1.6, 1.3, -4.4]), add(G, [0.4, 1.35, 0]), pushK(f, 1925, 0.0025, 0.006, 35), { fov: 38, roll: -0.035 }) },
   ],
 };
