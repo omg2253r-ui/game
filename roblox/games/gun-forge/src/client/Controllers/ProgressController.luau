@@ -172,11 +172,11 @@ end
 
 ---------------------------------------------------------------- init
 function Progress.Init()
-	local _, sb = UIController.MakeWindow("Season", "SEASON PASS", C.Accent)
+	local sw, sb = UIController.MakeWindow("Season", "SEASON PASS", C.Accent)
 	seasonBody = sb
 	local gw, gb = UIController.MakeWindow("Achievements", "GOALS", C.Primary)
 	goalsWin, goalsBody = gw, gb
-	local _, pb = UIController.MakeWindow("Spin", "DAILY SPIN", Color3.fromRGB(255, 159, 67))
+	local pw, pb = UIController.MakeWindow("Spin", "DAILY SPIN", Color3.fromRGB(255, 159, 67))
 	spinBody = pb
 	spinBody.CanvasSize = UDim2.fromOffset(0, 330)
 	spinBody.AutomaticCanvasSize = Enum.AutomaticSize.None
@@ -191,13 +191,13 @@ function Progress.Init()
 	end)
 	buildSpin()
 
-	onVisible(panelOf("Season"), function()
+	onVisible(sw, function()
 		renderSeason(Net.invoke("SeasonInfo"))
 	end)
 	onVisible(gw, function()
 		selectTab(goalTab)
 	end)
-	onVisible(panelOf("Spin"), function()
+	onVisible(pw, function()
 		spinInfo = Net.invoke("SpinInfo")
 		refreshSpinUi()
 	end)
@@ -224,11 +224,6 @@ function Progress.Init()
 			setTracker(st)
 		end
 	end)
-end
-
-local function panelOfDummy() end
-function panelOf(name: string): GuiObject
-	return UIController.Gui():WaitForChild(name)
 end
 
 return Progress

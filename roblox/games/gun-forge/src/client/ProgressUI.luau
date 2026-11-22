@@ -14,26 +14,19 @@ function P.tierRow(body, tier: number, st, cfg, onClaim: (number, boolean) -> ()
 	local reached = tier <= st.tier
 	local r = UI.panel({ LayoutOrder = tier, Size = UDim2.new(1, -8, 0, 84), BackgroundColor3 = reached and C.PanelLight or C.Panel, Parent = body })
 	UI.label("TIER " .. tier, 18, { Position = UDim2.fromOffset(10, 4), Size = UDim2.fromOffset(80, 24), TextXAlignment = Enum.TextXAlignment.Left, Parent = r })
-	local function side(x: number, name: string, reward, claimed: boolean, locked: boolean, premium: boolean)
-		local txt = Achievements.RewardText(reward)
-		UI.label(name .. ": " .. txt, 13, { Font = Theme.FontBody, TextColor3 = premium and C.Accent or C.TextDim, Position = UDim2.new(0, x, 0, 4), Size = UDim2.new(0.5, -90, 0, 38), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Parent = r })
+	local function side(xs: number, name: string, reward, claimed: boolean, locked: boolean, premium: boolean)
+		UI.label(name .. ": " .. Achievements.RewardText(reward), 13, { Font = Theme.FontBody, TextColor3 = premium and C.Accent or C.TextDim, Position = UDim2.new(xs, 8, 0, 28), Size = UDim2.new(0.5, -16, 0, 22), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Parent = r })
 		local can = reached and not claimed and not locked
 		local label = claimed and "CLAIMED" or (locked and "LOCKED" or (reached and "CLAIM" or "..."))
 		local b = UI.button(label, can and (premium and C.Accent or C.Primary) or C.Panel, function()
 			if can then
 				onClaim(tier, premium)
 			end
-		end, { Size = UDim2.new(0.5, -20, 0, 34), Position = UDim2.new(0, x, 1, -40), Parent = r })
-		b.Label.TextSize = 15
+		end, { Size = UDim2.new(0.5, -16, 0, 28), Position = UDim2.new(xs, 8, 1, -32), Parent = r })
+		b.Label.TextSize = 14
 	end
-	side(14, "FREE", cfg.Free[tier], st.claimed[tostring(tier)] == true, false, false)
-	side(0, "PREMIUM", cfg.Premium[tier], st.premiumClaimed[tostring(tier)] == true, not st.premium, true)
-	-- second column sits in the right half
-	for _, ch in ipairs(r:GetChildren()) do
-		if ch:IsA("GuiObject") and ch.Position.X.Offset == 0 and ch.Position.X.Scale == 0 and ch.Name ~= "" then
-			ch.Position = UDim2.new(0.5, 6, ch.Position.Y.Scale, ch.Position.Y.Offset)
-		end
-	end
+	side(0, "FREE", cfg.Free[tier], st.claimed[tostring(tier)] == true, false, false)
+	side(0.5, "PREMIUM", cfg.Premium[tier], st.premiumClaimed[tostring(tier)] == true, not st.premium, true)
 	return r
 end
 
