@@ -9,10 +9,10 @@ local Workspace = game:GetService("Workspace")
 local Net = require(ReplicatedStorage.Shared.Net)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 local UI = require(script.Parent.Parent.UIKit)
-local Effects = require(script.Parent.EffectsController)
+local Vfx = require(script.Parent.VfxController)
 
 local MonsterController = {}
-type Rec = { model: Model, size: number, bar: Frame?, last: Vector3 }
+type Rec = { model: Model, size: number, bar: Frame?, last: Vector3, born: number, rot: CFrame, atk: number, color: Color3 }
 local tracked: { [Model]: Rec } = {}
 
 local function pos(m: Model): Vector3
@@ -29,6 +29,11 @@ local function pos(m: Model): Vector3
 end
 MonsterController.Pos = pos
 
+function MonsterController.Bob(m: Model): number
+	local s = m:GetAttribute("Size") or 4
+	return s * 0.1
+end
+
 function MonsterController.Alive(): { Model }
 	local out = {}
 	for m in pairs(tracked) do
@@ -39,31 +44,14 @@ function MonsterController.Alive(): { Model }
 	return out
 end
 
-local function poof(at: Vector3, size: number, color: Color3)
-	if Effects.LowFx then
-		return
-	end
-	local p = Instance.new("Part")
-	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch = true, false, false, false
-	p.Shape = Enum.PartType.Ball
-	p.Material = Enum.Material.Neon
-	p.Color = color
-	p.Size = Vector3.one * size * 0.6
-	p.Position = at
-	p.Parent = Workspace
-	TweenService:Create(p, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { Size = Vector3.one * size * 1.8, Transparency = 1 }):Play()
-	task.delay(0.4, function()
-		p:Destroy()
-	end)
-end
-
 local function track(m: Instance)
 	if not m:IsA("Model") or tracked[m] then
 		return
 	end
 	local size = m:GetAttribute("Size") or 4
 	local root = m.PrimaryPart or m:FindFirstChildWhichIsA("BasePart")
-	local rec: Rec = { model = m, size = size, last = pos(m) }
+	local rec: Rec = { model = m, size = size, last = pos(m), born = os.clock(), rot = CFrame.identity, atk = 0,
+		color = if root and root:IsA("BasePart") then root.Color else Color3.new(1, 1, 1) }
 	if root then
 		local bb = Instance.new("BillboardGui")
 		bb.Size = UDim2.fromOffset(if m:GetAttribute("Boss") then 260 else 130, 34)
@@ -74,20 +62,26 @@ local function track(m: Instance)
 		rec.bar = UI.new("Frame", { BackgroundColor3 = Theme.Colors.Danger, Size = UDim2.fromScale(1, 1), Parent = back }, { UI.corner(UDim.new(1, 0)) })
 		bb.Parent = root
 	end
+	m:GetAttributeChangedSignal("Atk"):Connect(function()
+		rec.atk = os.clock()
+	end)
 	m:GetAttributeChangedSignal("HP"):Connect(function()
 		local hp, max = m:GetAttribute("HP") or 0, m:GetAttribute("MaxHP") or 1
 		if rec.bar then
 			rec.bar.Size = UDim2.fromScale(math.clamp(hp / max, 0, 1), 1)
 		end
 		if hp <= 0 then
-			local col = root and (root :: BasePart).Color or Color3.new(1, 1, 1)
-			poof(rec.last, size, col)
+			Vfx.DeathBurst(rec.last, size, rec.color)
 		end
 	end)
 	tracked[m] = rec
 end
 
 local function slam(center: Vector3, radius: number, delay: number)
+	task.delay(delay, function()
+		Vfx.Sound(require(ReplicatedStorage.Shared.Config.Sounds).Slam, center)
+		Vfx.Shake(0.6, 0.35)
+	end)
 	local ring = Instance.new("Part")
 	ring.Anchored, ring.CanCollide, ring.CanQuery, ring.CanTouch = true, false, false, false
 	ring.Shape = Enum.PartType.Cylinder
@@ -122,7 +116,7 @@ function MonsterController.Init()
 
 	local cam = Workspace.CurrentCamera
 	local player = Players.LocalPlayer
-	RunService.Heartbeat:Connect(function()
+	RunService.Heartbeat:Connect(function(dt)
 		local camPos = cam.CFrame.Position
 		local char = player.Character
 		local me = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -130,16 +124,31 @@ function MonsterController.Init()
 		for m, rec in pairs(tracked) do
 			local p = pos(m)
 			if (p - camPos).Magnitude < 260 then
-				local dir = p - rec.last
+				local moving = (p - rec.last).Magnitude > 0.01
+				-- facing: player if close, else movement direction; slerped for smooth turns
 				local look
 				if me and (me.Position - p).Magnitude < 40 then
-					look = Vector3.new(me.Position.X, p.Y, me.Position.Z)
-				elseif dir.Magnitude > 0.01 then
-					look = p + Vector3.new(dir.X, 0, dir.Z)
+					look = Vector3.new(me.Position.X, p.Y, me.Position.Z) - p
+				elseif moving then
+					look = Vector3.new(p.X - rec.last.X, 0, p.Z - rec.last.Z)
 				end
-				local bob = math.abs(math.sin(t * 6 + rec.size)) * rec.size * 0.12
-				local at = p + Vector3.new(0, bob, 0)
-				m:PivotTo(if look and (look - p).Magnitude > 0.05 then CFrame.lookAt(at, Vector3.new(look.X, at.Y, look.Z)) else CFrame.new(at))
+				if look and look.Magnitude > 0.05 then
+					rec.rot = rec.rot:Lerp(CFrame.lookAt(Vector3.zero, look.Unit), math.clamp(dt * 10, 0, 1))
+				end
+				-- hop while moving, gentle idle breathing otherwise
+				local speed = if moving then 9 else 3
+				local hop = math.abs(math.sin(t * speed + rec.size)) * rec.size * (if moving then 0.18 else 0.05)
+				-- spawn: rise out of the ground
+				local age = t - rec.born
+				local rise = if age < 0.5 then -(1 - age / 0.5) ^ 2 * rec.size else 0
+				-- attack: wind-up back then lunge forward
+				local lunge = 0
+				local at = t - rec.atk
+				if at < 0.5 then
+					lunge = if at < 0.25 then -at / 0.25 * 0.6 else math.sin((at - 0.25) / 0.25 * math.pi) * 1.8
+				end
+				local cf = CFrame.new(p + Vector3.new(0, hop + rise, 0)) * rec.rot * CFrame.new(0, 0, -lunge * rec.size * 0.3)
+				m:PivotTo(cf)
 			end
 			rec.last = p
 		end

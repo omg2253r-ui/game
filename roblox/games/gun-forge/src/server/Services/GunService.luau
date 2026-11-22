@@ -11,7 +11,40 @@ local Net = require(Shared.Net)
 local GunService = {}
 local S
 local lastShot: { [Player]: number } = {}
+local ammo: { [Player]: { mag: number, max: number, reloadUntil: number, reload: number } } = {}
+local rng = Random.new()
+
+local function resetAmmo(player: Player, typeId: string)
+	local t = Guns.Types[typeId]
+	ammo[player] = { mag = t.mag, max = t.mag, reloadUntil = 0, reload = t.reload }
+	Net.fire(player, "Ammo", t.mag, t.mag, 0)
+end
+
+local function startReload(player: Player)
+	local a = ammo[player]
+	if not a or os.clock() < a.reloadUntil or a.mag >= a.max then
+		return
+	end
+	a.reloadUntil = os.clock() + a.reload - 0.15 -- small slack for latency
+	Net.fire(player, "Ammo", 0, a.max, a.reload)
+	task.delay(a.reload - 0.15, function()
+		if ammo[player] == a then
+			a.mag = a.max
+		end
+	end)
+end
 local lastRelay: { [Player]: number } = {}
+
+-- effective stats incl. enchant (PvE); PvP uses base type stats
+local function ench(item, kind: string): number
+	return if item.ench and item.ench.kind == kind then item.ench.val else 0
+end
+function GunService.Rate(item): number
+	return Guns.Types[item.id].rate * (1 + ench(item, "rate"))
+end
+function GunService.Range(item): number
+	return Guns.Types[item.id].range * (1 + ench(item, "range"))
+end
 
 local function buildHandle(item): BasePart
 	local assets = ReplicatedStorage:FindFirstChild("Assets")
@@ -74,10 +107,12 @@ function GunService.GiveGun(player: Player)
 	tool.GripPos = Vector3.new(0, -0.2, 0.3)
 	tool:SetAttribute("Gun", item.id)
 	tool:SetAttribute("Rarity", item.rarity)
-	tool:SetAttribute("Rate", Guns.Types[item.id].rate)
-	tool:SetAttribute("Range", Guns.Types[item.id].range)
+	tool:SetAttribute("Rate", GunService.Rate(item))
+	tool:SetAttribute("Range", GunService.Range(item))
+	tool:SetAttribute("Level", item.lvl or 0)
 	buildHandle(item).Parent = tool
 	tool.Parent = backpack
+	resetAmmo(player, item.id)
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	if hum then
 		hum:EquipTool(tool) -- AFK friendly: always holding the gun
@@ -112,10 +147,24 @@ local function onFire(player: Player, kind, targetId)
 	end
 	local t = Guns.Types[item.id]
 	local now = os.clock()
-	if now - (lastShot[player] or 0) < (1 / t.rate) * Combat.FireTolerance then
+	local inArena = S.PlayerService.InArena(player)
+	local rate = if inArena then t.rate else GunService.Rate(item)
+	if now - (lastShot[player] or 0) < (1 / rate) * Combat.FireTolerance then
+		return
+	end
+	local a = ammo[player]
+	if not a or now < a.reloadUntil then
+		return
+	end
+	if a.mag <= 0 then
+		startReload(player)
 		return
 	end
 	lastShot[player] = now
+	a.mag -= 1
+	if a.mag <= 0 then
+		startReload(player)
+	end
 
 	if kind == "m" then
 		if S.PlayerService.InArena(player) then
@@ -126,12 +175,23 @@ local function onFire(player: Player, kind, targetId)
 			return
 		end
 		local pos = S.MonsterService.Position(rec)
-		if (pos - root.Position).Magnitude > t.range + rec.def.size + 6 then
+		if (pos - root.Position).Magnitude > GunService.Range(item) + rec.def.size + 6 then
 			return
 		end
-		local dmg = item.dmg * Guns.PowerFactor(S.PlayerService.GetPower(player))
+		local dist = (pos - root.Position).Magnitude
+		local crit = rng:NextNumber() < t.crit + ench(item, "crit")
+		local mastery = 1 + (item.lvl or 0) * Guns.Mastery.DamagePerLevel
+		local dmg = item.dmg * Guns.PowerFactor(S.PlayerService.GetPower(player)) * Guns.Falloff(item.id, dist * (1 - ench(item, "range")))
+			* mastery * (1 + ench(item, "dmg"))
+		if crit then
+			dmg *= Guns.CritMultiplier
+		end
+		local wasBoss = rec.def.boss
 		S.MonsterService.Damage(targetId, player, dmg)
-		Net.fire(player, "Hit", pos, math.floor(dmg))
+		Net.fire(player, "Hit", pos, math.floor(dmg), crit)
+		if not S.MonsterService.Get(targetId) then -- this shot killed it: gun mastery xp
+			GunService.AddMastery(player, if wasBoss then Guns.Mastery.BossXp else 1)
+		end
 		relay(player, pos)
 	elseif kind == "p" then
 		local target = Players:GetPlayerByUserId(targetId)
@@ -139,10 +199,38 @@ local function onFire(player: Player, kind, targetId)
 		if not troot or (troot.Position - root.Position).Magnitude > t.range + 4 then
 			return
 		end
-		local dmg = t.dmg * t.pellets * (1 + Guns.PvP.RarityBonus * (item.rarity - 1)) * Guns.PvP.DamageScale
+		local dist = (troot.Position - root.Position).Magnitude
+		local dmg = t.dmg * t.pellets * (1 + Guns.PvP.RarityBonus * (item.rarity - 1)) * Guns.PvP.DamageScale * Guns.Falloff(item.id, dist)
 		if S.ArenaService.Damage(player, target :: Player, dmg) then
-			Net.fire(player, "Hit", troot.Position, math.floor(dmg))
+			Net.fire(player, "Hit", troot.Position, math.floor(dmg), false)
 			relay(player, troot.Position)
+		end
+	end
+end
+
+function GunService.AddMastery(player: Player, xp: number)
+	local d = S.DataService.Get(player)
+	local item = d and d.items[d.equipped.gun]
+	if not item or (item.lvl or 0) >= Guns.Mastery.MaxLevel then
+		return
+	end
+	local leveled = false
+	S.DataService.Update(player, function()
+		item.xp = (item.xp or 0) + xp
+		item.lvl = item.lvl or 0
+		while item.lvl < Guns.Mastery.MaxLevel and item.xp >= Guns.MasteryXpNeeded(item.lvl) do
+			item.xp -= Guns.MasteryXpNeeded(item.lvl)
+			item.lvl += 1
+			leveled = true
+		end
+	end)
+	if leveled then
+		S.EconomyService.Toast(player, ("%s reached MASTERY Lv %d! (+%d%% dmg)"):format(Guns.Types[item.id].name, item.lvl,
+			math.floor(item.lvl * Guns.Mastery.DamagePerLevel * 100)), "success")
+		S.InventoryService.SyncSoon(player)
+		local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
+		if tool then
+			tool:SetAttribute("Level", item.lvl)
 		end
 	end
 end
@@ -151,7 +239,9 @@ function GunService.Init(services)
 	S = services
 	Net.declare("Shot")
 	Net.declare("Hit")
+	Net.declare("Ammo")
 	Net.on("Fire", onFire, 12)
+	Net.on("Reload", startReload, 2)
 
 	S.InventoryService.GearChanged:Connect(function(player, slot)
 		if slot == "gun" then
@@ -172,6 +262,7 @@ function GunService.Init(services)
 	Players.PlayerRemoving:Connect(function(p)
 		lastShot[p] = nil
 		lastRelay[p] = nil
+		ammo[p] = nil
 	end)
 end
 

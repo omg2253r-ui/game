@@ -107,6 +107,37 @@ function ForgeService.Init(services)
 		return finish(player, perfects)
 	end, 2)
 
+	-- Enchant: Gems + 2 rare cores of the gun's tier -> random bonus (replaces previous)
+	Net.handle("Enchant", function(player, uid)
+		local item = type(uid) == "string" and S.InventoryService.GetItem(player, uid)
+		if not item or item.kind ~= "gun" then
+			return nil
+		end
+		local core = Recipes.TierMats[item.tier][2]
+		local cost = Guns.EnchantCost
+		local d = S.DataService.Get(player)
+		if not d or (d.currencies.Gems or 0) < cost.Gems then
+			return { err = ("Need %d Gems"):format(cost.Gems) }
+		end
+		if not S.InventoryService.Take(player, { [core] = cost.RareCores }, 0) then
+			return { err = "Need 2 rare cores of this tier" }
+		end
+		if not S.EconomyService.Spend(player, "Gems", cost.Gems) then
+			S.InventoryService.AddMaterial(player, core, cost.RareCores) -- refund
+			return { err = "Not enough Gems" }
+		end
+		local e = Guns.Enchants[rng:NextInteger(1, #Guns.Enchants)]
+		local val = math.floor((e.min + (e.max - e.min) * rng:NextNumber() ^ 1.6) * 100) / 100 -- high rolls are rarer
+		S.DataService.Update(player, function()
+			item.ench = { kind = e.kind, val = val }
+		end)
+		S.InventoryService.Sync(player)
+		if d.equipped.gun == uid then
+			S.GunService.GiveGun(player)
+		end
+		return { kind = e.kind, name = e.name, val = val }
+	end, 2)
+
 	Players.PlayerRemoving:Connect(function(p)
 		if sessions[p] then
 			finish(p, 0) -- runs before DataService releases the profile in practice; item is saved with it

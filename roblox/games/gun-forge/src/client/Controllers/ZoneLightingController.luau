@@ -19,6 +19,8 @@ local function ensure(className: string, name: string)
 	return inst
 end
 
+-- Tween every numeric/Color3 prop (~1 s); set the rest (bool/enum) immediately.
+local FADE = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
 local function apply(inst: Instance, props, fade: boolean)
 	local tweenable = {}
 	for k, v in pairs(props or {}) do
@@ -32,7 +34,7 @@ local function apply(inst: Instance, props, fade: boolean)
 	end
 	if next(tweenable) then
 		pcall(function()
-			TweenService:Create(inst, TweenInfo.new(1.2), tweenable):Play()
+			TweenService:Create(inst, FADE, tweenable):Play()
 		end)
 	end
 end
@@ -48,7 +50,10 @@ local function applyPreset(name: string)
 	apply(ensure("ColorCorrectionEffect", "ColorCorrection"), p.ColorCorrection, true)
 	local rays = ensure("SunRaysEffect", "SunRays")
 	rays.Enabled = p.SunRays ~= nil
-	apply(rays, p.SunRays, false)
+	apply(rays, p.SunRays, true)
+	local dof = ensure("DepthOfFieldEffect", "DepthOfField")
+	dof.Enabled = p.DepthOfField ~= nil
+	apply(dof, p.DepthOfField, true)
 end
 
 local function getBanner(): TextLabel

@@ -13,6 +13,12 @@ local UI = require(script.Parent.Parent.UIKit)
 local W = require(script.Parent.Parent.Widgets)
 local State = require(script.Parent.Parent.ClientState)
 local UIController = require(script.Parent.UIController)
+local Vfx = require(script.Parent.VfxController)
+local GunController = require(script.Parent.GunController)
+local Sounds = require(Shared.Config.Sounds)
+local Guns = require(Shared.Config.Guns)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local C = Theme.Colors
 
@@ -117,6 +123,7 @@ function Hud.Init()
 	-- x2 pulse button (pops in at random spots on the right side)
 	pulseBtn = UI.button("x2!", C.Forge, function()
 		Net.send("PulseTap")
+		Vfx.Sound(Sounds.Ui)
 		pulseBtn.Visible = false
 		W.flash(gui, C.Forge)
 	end, { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(130, 130), Visible = false, ZIndex = 10, Parent = gui })
@@ -126,6 +133,7 @@ function Hud.Init()
 	banner = UI.label("", 30, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104), Size = UDim2.fromOffset(900, 40), TextColor3 = C.Gold, Visible = false, Parent = gui })
 
 	Net.listen("PulseOffer", function(seconds)
+		Vfx.Sound(Sounds.Pulse)
 		pulseBtn.Position = UDim2.fromScale(0.55 + math.random() * 0.3, 0.3 + math.random() * 0.35)
 		pulseBtn.Visible = true
 		pop(pulseBtn, 0.3)
@@ -157,6 +165,7 @@ function Hud.Init()
 		local y = 0
 		if loot.coins and loot.coins > 0 then
 			floatText(pos + Vector3.new(0, y, 0), "+" .. W.short(loot.coins) .. " 🪙", C.Gold, 22)
+			Vfx.LootOrbs(pos, 3, C.Gold)
 			y += 1.5
 		end
 		if loot.power and loot.power > 0 then
@@ -167,6 +176,7 @@ function Hud.Init()
 			local def = Materials[mat]
 			if def then
 				floatText(pos + Vector3.new(0, y, 0), ("+%d %s %s"):format(n, def.glyph, def.name), def.color, 18)
+				Vfx.LootOrbs(pos, n, def.color)
 				y += 1.5
 			end
 		end
@@ -174,8 +184,85 @@ function Hud.Init()
 			Hud.Announce(("World Boss — your rank #%d"):format(loot.rank))
 		end
 	end)
-	Net.listen("Hit", function(pos: Vector3, dmg: number)
-		floatText(pos, W.short(dmg), Color3.new(1, 1, 1), 18)
+	Net.listen("Hit", function(pos: Vector3, dmg: number, crit: boolean?)
+		Vfx.DamageNumber(pos, dmg, crit, W.short)
+		Vfx.HitSpark(pos, crit)
+		Vfx.Sound(if crit then Sounds.Crit else Sounds.Hit)
+	end)
+
+	-- health bar (custom, smooth) above the TRAIN button
+	local player = Players.LocalPlayer
+	local hpBack = UI.panel({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -100), Size = UDim2.fromOffset(320, 26), BackgroundColor3 = C.Bg, Parent = gui })
+	local hpLag = UI.new("Frame", { BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.3, Size = UDim2.fromScale(1, 1), Parent = hpBack }, { UI.corner() })
+	local hpFill = UI.new("Frame", { BackgroundColor3 = C.Primary, Size = UDim2.fromScale(1, 1), Parent = hpBack }, { UI.corner() })
+	local hpText = UI.label("", 16, { Size = UDim2.fromScale(1, 1), Parent = hpBack })
+	-- ammo counter (bottom right) with reload bar
+	local ammoBox = UI.panel({ AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -146), Size = UDim2.fromOffset(150, 58), BackgroundColor3 = C.Bg, Parent = gui })
+	local ammoText = UI.label("", 26, { Size = UDim2.new(1, 0, 0, 36), Parent = ammoBox })
+	local gunText = UI.label("", 12, { Font = Theme.FontBody, Position = UDim2.fromOffset(0, 32), Size = UDim2.new(1, 0, 0, 14), TextColor3 = C.TextDim, Parent = ammoBox })
+	local reloadBar = UI.new("Frame", { BackgroundColor3 = C.Gold, Position = UDim2.new(0, 6, 1, -8), Size = UDim2.new(0, 0, 0, 4), Parent = ammoBox })
+	local lagRatio = 1
+	RunService.RenderStepped:Connect(function(dt) -- lint-ok (2 bars)
+		local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if hum and hum.MaxHealth > 0 then
+			local r = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+			hpFill.Size = hpFill.Size:Lerp(UDim2.fromScale(r, 1), math.clamp(dt * 14, 0, 1))
+			lagRatio = if r > lagRatio then r else lagRatio + (r - lagRatio) * math.clamp(dt * 2.5, 0, 1)
+			hpLag.Size = UDim2.fromScale(lagRatio, 1)
+			hpFill.BackgroundColor3 = C.Danger:Lerp(C.Primary, r)
+			hpText.Text = ("%s / %s"):format(W.short(hum.Health), W.short(hum.MaxHealth))
+		end
+		local t = player.Character and player.Character:FindFirstChildOfClass("Tool")
+		ammoBox.Visible = t ~= nil
+		if t then
+			local def = Guns.Types[t:GetAttribute("Gun") :: string]
+			gunText.Text = t.Name
+			if GunController.Reloading() then
+				ammoText.Text = "RELOADING"
+				ammoText.TextColor3 = C.Gold
+				local left = GunController.ReloadUntil - os.clock()
+				reloadBar.Size = UDim2.new(1 - math.clamp(left / math.max(GunController.ReloadTime, 0.01), 0, 1), -12, 0, 4)
+			else
+				ammoText.Text = ("%d / %d"):format(GunController.Mag, GunController.MaxMag)
+				ammoText.TextColor3 = if GunController.Mag <= (def and def.mag or 10) * 0.25 then C.Danger else Color3.new(1, 1, 1)
+				reloadBar.Size = UDim2.new(0, 0, 0, 4)
+			end
+		end
+	end)
+
+	-- training range: while TRAINING in the hub, your character shoots the nearest target dummy
+	task.spawn(function()
+		while true do -- lint-ok (task.wait)
+			task.wait(0.7)
+			local char = player.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local map = Workspace:FindFirstChild("Map")
+			local hub = map and map:FindFirstChild("Hub")
+			local dummies = hub and hub:FindFirstChild("TrainingDummies")
+			if root and dummies and State.Train.training and player:GetAttribute("Zone") == "hub" then
+				local best, bd = nil, 40
+				for _, d in ipairs(dummies:GetChildren()) do
+					if d:IsA("BasePart") then
+						local dist = (d.Position - root.Position).Magnitude
+						if dist < bd then
+							best, bd = d, dist
+						end
+					end
+				end
+				if best then
+					local t = char:FindFirstChildOfClass("Tool")
+					local from = GunController.MuzzlePos(t, char)
+					if from and t then
+						local col = Guns.Rarities[t:GetAttribute("Rarity") or 1].color
+						local hit = best.Position + Vector3.new((math.random() - 0.5) * 1.5, (math.random() - 0.5) * 1.5, 0)
+						Vfx.MuzzleFlash(from, col)
+						Vfx.Bullet(from, hit, col, function()
+							Vfx.HitSpark(hit, false)
+						end)
+					end
+				end
+			end
+		end
 	end)
 
 	-- power ticker

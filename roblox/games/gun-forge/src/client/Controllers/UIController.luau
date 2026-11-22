@@ -262,8 +262,8 @@ local menuFrame
 function UIController.AddMenuButton(order: number, text: string, color: Color3, windowName: string)
 	local b = UI.button(text, color, function()
 		toggle(windowName)
-	end, { LayoutOrder = order, Size = UDim2.fromOffset(88, 64), Parent = menuFrame })
-	b.Label.TextSize = 16
+	end, { LayoutOrder = order, Size = UDim2.fromOffset(76, 58), Parent = menuFrame })
+	b.Label.TextSize = 14
 	return b
 end
 UIController.MakeWindow = makeWindow
@@ -368,8 +368,8 @@ function UIController.Init()
 	end
 
 	-- side menu (left middle): 2-column grid so genre controllers can add buttons
-	local menu = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(186, 460), Parent = gui })
-	UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(88, 64), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
+	local menu = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(246, 470), Parent = gui })
+	UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(76, 58), CellPadding = UDim2.fromOffset(8, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
 	menuFrame = menu
 	UIController.AddMenuButton(1, "SHOP", C.Accent, "Shop")
 	local rewardsBtn = UIController.AddMenuButton(2, "REWARDS", C.Primary, "Rewards")

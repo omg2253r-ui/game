@@ -14,7 +14,7 @@ task.spawn(ZoneLightingController.Init)
 task.spawn(EffectsController.Init)
 
 -- Gun Forge controllers (order = menu button order is set inside each)
-for _, name in ipairs({ "HudController", "MonsterController", "GunController", "MinigameController", "ForgeController",
+for _, name in ipairs({ "VfxController", "HudController", "MonsterController", "GunController", "MinigameController", "ForgeController",
 	"InventoryController", "PetsController", "ArenaController", "ClanController", "StationController" }) do
 	local ok, err = pcall(function()
 		require(Controllers:WaitForChild(name)).Init()

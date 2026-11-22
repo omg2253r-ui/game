@@ -102,7 +102,7 @@ local function buildModel(defId: string, def, size: number): Model
 	return m
 end
 
--- opts: { zone, static, onDeath(rec), name, hpOverride }
+-- opts: { zone, static, onDeath(rec), name, hpOverride, def, raidId (only players with attribute RaidId==raidId are targeted) }
 function MonsterService.Spawn(defId: string, pos: Vector3, opts)
 	opts = opts or {}
 	local def = opts.def or Monsters[defId]
@@ -121,7 +121,7 @@ function MonsterService.Spawn(defId: string, pos: Vector3, opts)
 	m:SetAttribute("Boss", def.boss == true)
 	m:SetAttribute("Size", def.size)
 	local rec = { id = id, defId = defId, def = def, zone = opts.zone, model = m, hp = hp, maxHp = hp, y = y,
-		from = start, to = start, t0 = now(), dur = 0, lastAttack = 0, contrib = {}, static = opts.static, onDeath = opts.onDeath, wanderAt = 0 }
+		from = start, to = start, t0 = now(), dur = 0, lastAttack = 0, contrib = {}, static = opts.static, onDeath = opts.onDeath, wanderAt = 0, raidId = opts.raidId }
 	setSegment(rec, start, 0)
 	m.Parent = folder
 	recs[id] = rec
@@ -221,9 +221,12 @@ function MonsterService.Damage(id: number, player: Player, dmg: number): boolean
 	return true
 end
 
+-- along the lane: keep the first 35 studs after the gate and the boss end (last 45) clear
 local function randomPoint(zone, margin: number): Vector3
 	local c, s = zone.center, zone.size
-	return Vector3.new(c.X + rng:NextNumber(-s.X / 2 + margin, s.X / 2 - margin), 0, c.Z + rng:NextNumber(-s.Z / 2 + margin, s.Z / 2 - margin))
+	local x = c.X + rng:NextNumber(-s.X / 2 + margin, s.X / 2 - margin)
+	local z = c.Z + rng:NextNumber(-s.Z / 2 + 45, s.Z / 2 - 35)
+	return Vector3.new(x, 0, z)
 end
 
 local function clampToZone(zone, p: Vector3, y: number): Vector3
@@ -238,11 +241,11 @@ local function spawnTick()
 		while zoneCount[zone.id] < zone.maxAlive and n < 3 do -- max 3 per tick per zone (smooth)
 			n += 1
 			zoneCount[zone.id] += 1
-			MonsterService.Spawn(zone.monsters[rng:NextInteger(1, #zone.monsters)], randomPoint(zone, 15), { zone = zone })
+			MonsterService.Spawn(zone.monsters[rng:NextInteger(1, #zone.monsters)], randomPoint(zone, 6), { zone = zone })
 		end
 		if not bossAlive[zone.id] then
 			bossAlive[zone.id] = true
-			MonsterService.Spawn(zone.boss, zone.center, { zone = zone })
+			MonsterService.Spawn(zone.boss, zone.bossPos or zone.center, { zone = zone })
 		end
 	end
 end
@@ -264,10 +267,10 @@ local function aiTick()
 		local def = rec.def
 		local reach = Combat.MonsterAttackRange + def.size / 2
 		-- pick target: last attacker if close, else nearest player in range
-		local target, best = nil, Combat.MonsterAggroRange + def.size
+		local target, best = nil, if rec.raidId then 400 else Combat.MonsterAggroRange + def.size
 		for _, p in ipairs(players) do
 			local hrp = hrpOf(p)
-			if hrp and not S.PlayerService.InArena(p) and (not rec.zone or MonsterService.InZone(rec.zone, hrp.Position)) then
+			if hrp and not S.PlayerService.InArena(p) and (if rec.raidId then p:GetAttribute("RaidId") == rec.raidId else (not rec.zone or MonsterService.InZone(rec.zone, hrp.Position))) then
 				local dist = (hrp.Position - pos).Magnitude
 				if p == rec.aggro and dist < best * 2 then
 					target, best = hrp, -1
@@ -283,10 +286,20 @@ local function aiTick()
 			if dist <= reach then
 				if os.clock() - rec.lastAttack >= Combat.MonsterAttackCooldown then
 					rec.lastAttack = os.clock()
-					local hum = (target.Parent :: Model):FindFirstChildOfClass("Humanoid")
-					if hum then
-						hum:TakeDamage(def.damage * Combat.MonsterDamageScale)
-					end
+					-- telegraph: clients play a wind-up + lunge from this attribute, damage lands after it
+					rec.model:SetAttribute("Atk", now())
+					local victim = target
+					task.delay(0.35, function()
+						if not recs[rec.id] or not victim.Parent then
+							return
+						end
+						if (victim.Position - MonsterService.Position(rec)).Magnitude <= reach * 1.4 then
+							local hum = (victim.Parent :: Model):FindFirstChildOfClass("Humanoid")
+							if hum then
+								hum:TakeDamage(def.damage * Combat.MonsterDamageScale)
+							end
+						end
+					end)
 				end
 			elseif not rec.static and (t >= rec.t0 + rec.dur or (rec.to - flat).Magnitude > 6) then
 				local goal = pos + (flat - pos).Unit * math.min(def.speed, dist - reach * 0.7)
@@ -298,7 +311,7 @@ local function aiTick()
 		elseif not rec.static and rec.zone and t >= rec.t0 + rec.dur and os.clock() >= rec.wanderAt then
 			rec.aggro = nil
 			rec.wanderAt = os.clock() + rng:NextNumber(2, 5)
-			local goal = clampToZone(rec.zone, pos + Vector3.new(rng:NextNumber(-25, 25), 0, rng:NextNumber(-25, 25)), rec.y)
+			local goal = clampToZone(rec.zone, pos + Vector3.new(rng:NextNumber(-12, 12), 0, rng:NextNumber(-25, 25)), rec.y)
 			setSegment(rec, goal, (goal - pos).Magnitude / (def.speed * 0.5))
 		end
 	end

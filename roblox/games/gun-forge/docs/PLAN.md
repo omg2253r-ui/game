@@ -63,3 +63,4 @@ Gate rule: a phase starts only after the previous gate is ticked by rbx-director
 - world-builder: MapService/MapParts build workspace.Map (Hub, 5 Zones+gates+roads+landmarks, 3 Arenas) in code; ZoneLightingController applies per-zone presets + banner; StarterMap disabled.
 - ui-designer: Theme neon restyle (+Energy/Forge/Gold/Rarity), 19 new icons, 5 rarity frames, tracer+muzzle VFX generated; ids pending upload (ASSETS.md).
 - G1 approved by user → Phase 2 + M1 started.
+- world-builder: linear lane rebuild: Hub arch "ADVENTURE ->" + Portal_<zoneId> x5 + Hub.TrainingDummies/Dummy1..6; Zones.<id>{Ground,SpawnArea,Gate,ReturnPortal_<id>,SideWalls,Bridge,Scenery,Landmark}; presets DesertDusk/FrostHaze/MagmaGlow/VoidNeon (+DepthOfField/SunRays all); ZoneLightingController tweens all props ~1s.

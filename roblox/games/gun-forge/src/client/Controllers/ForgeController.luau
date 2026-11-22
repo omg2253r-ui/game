@@ -34,10 +34,24 @@ local function matText(recipe): (string, boolean)
 	return table.concat(parts, "  "), ok
 end
 
+local function enchText(item): string
+	if not item.ench then
+		return ""
+	end
+	for _, e in ipairs(Guns.Enchants) do
+		if e.kind == item.ench.kind then
+			return "  •  " .. e.name .. " " .. e.fmt:format(math.floor(item.ench.val * 100))
+		end
+	end
+	return ""
+end
+
 local function statText(item): string
 	if item.kind == "gun" then
 		local t = Guns.Types[item.id]
-		return ("DMG %s  •  %s/s  •  Q%d%%"):format(W.short(item.dmg), tostring(t.rate), math.floor(item.q * 100))
+		local lvl = item.lvl or 0
+		local mastery = if lvl > 0 then ("  •  Lv%d"):format(lvl) else ""
+		return ("DMG %s  •  %s/s%s%s"):format(W.short(item.dmg * (1 + lvl * Guns.Mastery.DamagePerLevel)), tostring(t.rate), mastery, enchText(item))
 	end
 	return ("+%s HP  •  Q%d%%"):format(W.short(item.hp), math.floor(item.q * 100))
 end
@@ -120,11 +134,48 @@ local function craft(recipe)
 	btn.Label.TextSize = 30
 end
 
+local function renderEnchant()
+	UIController.List(body)
+	UIController.Row(body, 0, "ENCHANT & MASTERY", ("Enchant: %d Gems + 2 rare cores of the gun's tier → random bonus (replaces old). Mastery: kills level guns up to Lv%d (+%d%% dmg/lv)."):format(
+		Guns.EnchantCost.Gems, Guns.Mastery.MaxLevel, math.floor(Guns.Mastery.DamagePerLevel * 100)), "", C.Panel, false, function() end)
+	local list = {}
+	for uid, it in pairs(State.Inv.items) do
+		if it.kind == "gun" then
+			table.insert(list, { uid = uid, it = it })
+		end
+	end
+	table.sort(list, function(a, b)
+		return a.it.dmg > b.it.dmg
+	end)
+	for i, e in ipairs(list) do
+		local it = e.it
+		local core = Recipes.TierMats[it.tier][2]
+		local have = State.Inv.materials[core] or 0
+		local lvl = it.lvl or 0
+		local progress = if lvl >= Guns.Mastery.MaxLevel then 1 else (it.xp or 0) / Guns.MasteryXpNeeded(lvl)
+		UIController.Row(body, i, ("%s %s %s T%d  (Lv%d)"):format(GLYPH[it.id] or "", Guns.Rarities[it.rarity].name, Guns.Types[it.id].name, it.tier, lvl),
+			statText(it) .. ("  •  %s %d/%d"):format(Materials[core].glyph, have, Guns.EnchantCost.RareCores), "ENCHANT", Color3.fromRGB(181, 108, 255),
+			have >= Guns.EnchantCost.RareCores, function()
+				local r = Net.invoke("Enchant", e.uid)
+				if r and r.kind then
+					W.flash(UIController.Gui(), Color3.fromRGB(181, 108, 255))
+					UIController.Toast(("%s! %s"):format(r.name, enchText({ ench = r }):sub(6)), "success")
+				elseif r and r.err then
+					UIController.Toast(r.err, "error")
+				end
+			end, progress)
+	end
+end
+
 local function render()
 	if not body then
 		return
 	end
 	W.clear(body)
+	if kindFilter == "ENCHANT" then
+		renderEnchant()
+		return
+	end
 	UIController.List(body)
 	local kind = if kindFilter == "GUNS" then "gun" else "armor"
 	local list = {}
@@ -154,7 +205,7 @@ Forge.Render = render
 function Forge.Init()
 	local win, b = UIController.MakeWindow("Forge", "THE FORGE", C.Forge)
 	body = b
-	local select = W.tabs(win, b, { "GUNS", "ARMOR" }, function(name)
+	local select = W.tabs(win, b, { "GUNS", "ARMOR", "ENCHANT" }, function(name)
 		kindFilter = name
 		render()
 	end)

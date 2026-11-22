@@ -1,7 +1,9 @@
--- Builds workspace.Map in code (Hub, Zones, Arena). Names are contracts for other services:
---   Map.Hub{TrainingPads, Booth_*, Forge, FusionAltar, RebirthStatue, ArenaPortal, ClanBoard, CodesBoard, SpawnLocation, BossPit}
---   Map.Zones.<id>{Ground, SpawnArea, Gate(PowerReq, ZoneId), landmark}   Map.Arena.Arena1..3{SpawnA, SpawnB}
--- Perf: all Anchored; decor has CanCollide/CanQuery/CanTouch/CastShadow off. ~1000 parts total.
+-- Builds workspace.Map in code (Hub, linear Lane of 5 Zones, Arena). Names are contracts for other services:
+--   Map.Hub{TrainingPads/Pad1..6, TrainingDummies/Dummy1..6, Booth_*, Forge, FusionAltar, RebirthStatue, ArenaPortal,
+--           ClanBoard, CodesBoard, SpawnLocation, BossPit, Portal_<zoneId>}
+--   Map.Zones.<id>{Ground, SpawnArea, Gate(PowerReq, ZoneId), ReturnPortal_<id>, Landmark, Scenery}   Map.Arena.Arena1..3{SpawnA, SpawnB}
+-- Layout: hub at origin, ONE straight road towards -Z (48 wide), stage i = Zones[i].center/size, 30-stud bridges between stages.
+-- Perf: all Anchored; decor has CanCollide/CanQuery/CanTouch/CastShadow off. ~2500 parts total (budget 3000).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Zones = require(ReplicatedStorage.Shared.Config.Zones)
@@ -10,6 +12,7 @@ local Combat = require(ReplicatedStorage.Shared.Config.Combat)
 local P = require(script.Parent.MapParts)
 
 local part, cyl = P.part, P.cyl
+local GY = P.GY
 local NEON = Enum.Material.Neon
 local MapService = {}
 
@@ -42,31 +45,66 @@ local function invisible(p: Part)
 end
 
 -- ===== Hub =====
-local STATIONS = { -- name, label, angle (deg), color
-	{ "Booth_TargetRush", "TARGET RUSH", -72, P.Cyan },
-	{ "Booth_ReloadRhythm", "RELOAD RHYTHM", -36, P.Pink },
-	{ "Booth_LuckyCrate", "LUCKY CRATE", 5, P.Gold },
-	{ "Forge", "THE FORGE", 30, Color3.fromRGB(255, 120, 40) },
-	{ "FusionAltar", "FUSION ALTAR", 70, P.Pink },
-	{ "RebirthStatue", "REBIRTH", 110, P.Gold },
-	{ "ArenaPortal", "PVP ARENA", 145, Color3.fromRGB(255, 80, 80) },
-	{ "ClanBoard", "CLAN HALL", 175, P.Cyan },
-	{ "CodesBoard", "CODES", 225, Color3.fromRGB(120, 255, 150) },
+local function fmtPower(n: number): string
+	if n >= 1e6 then
+		return string.format("%gM", n / 1e6)
+	elseif n >= 1e3 then
+		return string.format("%gK", n / 1e3)
+	end
+	return tostring(n)
+end
+
+local STATIONS = { -- name, label, x, z, color  (all on the +Z side / flanks; the -Z side is the lane mouth)
+	{ "Booth_TargetRush", "TARGET RUSH", -54, 40, P.Cyan },
+	{ "Booth_ReloadRhythm", "RELOAD RHYTHM", -27, 40, P.Pink },
+	{ "Booth_LuckyCrate", "LUCKY CRATE", 0, 40, P.Gold },
+	{ "Forge", "THE FORGE", 27, 40, Color3.fromRGB(255, 120, 40) },
+	{ "FusionAltar", "FUSION ALTAR", 54, 40, P.Pink },
+	{ "RebirthStatue", "REBIRTH", -66, 16, P.Gold },
+	{ "ArenaPortal", "PVP ARENA", 66, 16, Color3.fromRGB(255, 80, 80) },
+	{ "ClanBoard", "CLAN HALL", -66, -14, P.Cyan },
+	{ "CodesBoard", "CODES", 66, -14, Color3.fromRGB(120, 255, 150) },
 }
+local MOUTH_Z = -68 -- where the lane walls / arch start (inside the hub rim)
 
 local function buildHub(map: Model)
 	local hub = model(map, "Hub")
 	local R = World.HubRadius
+	local halfLane = Zones.LaneWidth / 2
 	cyl(hub, "Floor", R * 2, 2, CFrame.new(0, -1, 0), P.Dark, Enum.Material.Metal)
 	cyl(hub, "FloorInlay", R * 2 - 16, 0.2, CFrame.new(0, 0.05, 0), Color3.fromRGB(40, 36, 80), Enum.Material.SmoothPlastic, true)
 	cyl(hub, "NeonRing", R * 2 - 4, 0.3, CFrame.new(0, 0.1, 0), P.Cyan, NEON, true)
 	cyl(hub, "NeonRingInner", R * 2 - 8, 0.4, CFrame.new(0, 0.12, 0), P.Dark, Enum.Material.SmoothPlastic, true)
-	for i = 1, 24 do -- edge pylons
-		local a = i / 24 * math.pi * 2
-		local c = CFrame.new(math.cos(a) * (R - 1), 0, math.sin(a) * (R - 1))
-		part(hub, "Pylon", Vector3.new(2, 7, 2), c * CFrame.new(0, 3.5, 0), P.Dark, Enum.Material.Metal, true)
-		part(hub, "PylonLight", Vector3.new(2.4, 1.2, 2.4), c * CFrame.new(0, 7.4, 0), i % 2 == 0 and P.Cyan or P.Pink, NEON, true)
+	cyl(hub, "SpawnRing", 24, 0.3, CFrame.new(0, 0.16, 0), P.Pink, NEON, true)
+	cyl(hub, "SpawnRingInner", 21, 0.35, CFrame.new(0, 0.18, 0), Color3.fromRGB(40, 36, 80), Enum.Material.SmoothPlastic, true)
+	for i = 1, 28 do -- edge pylons (skip the lane mouth)
+		local a = i / 28 * math.pi * 2
+		local px, pz = math.cos(a) * (R - 1), math.sin(a) * (R - 1)
+		if not (pz < 0 and math.abs(px) < 34) then
+			local c = CFrame.new(px, 0, pz)
+			part(hub, "Pylon", Vector3.new(2, 7, 2), c * CFrame.new(0, 3.5, 0), P.Dark, Enum.Material.Metal, true)
+			part(hub, "PylonLight", Vector3.new(2.4, 1.2, 2.4), c * CFrame.new(0, 7.4, 0), i % 2 == 0 and P.Cyan or P.Pink, NEON, true)
+		end
 	end
+
+	-- lane mouth: apron (hub edge -> stage 1 gate), clear and wide
+	local apronLen = math.abs(Zones[1].gatePos.Z - MOUTH_Z)
+	part(hub, "LaneApron", Vector3.new(Zones.LaneWidth, 2, apronLen), CFrame.new(0, -1.05, (MOUTH_Z + Zones[1].gatePos.Z) / 2), P.Dark, Enum.Material.Metal)
+	for side = -1, 1, 2 do
+		part(hub, "ApronEdge", Vector3.new(0.8, 0.2, apronLen), CFrame.new(side * (halfLane - 0.6), 0.12, (MOUTH_Z + Zones[1].gatePos.Z) / 2), P.Cyan, NEON, true)
+	end
+	for n = 0, 5 do -- chevrons leading the eye down the lane
+		part(hub, "Chevron", Vector3.new(14, 0.1, 1.2), CFrame.new(0, 0.2, -12 - n * 11), P.Gold, NEON, true).Transparency = 0.2 + n * 0.1
+	end
+	-- big arch "ADVENTURE ->"
+	for side = -1, 1, 2 do
+		part(hub, "ArchPillar", Vector3.new(4, 30, 4), CFrame.new(side * 28, 15, MOUTH_Z), P.Dark, Enum.Material.Metal, true)
+		part(hub, "ArchGlow", Vector3.new(1, 28, 4.4), CFrame.new(side * 28 - side * 2.1, 15, MOUTH_Z), P.Gold, NEON, true)
+	end
+	local beam = part(hub, "ArchBeam", Vector3.new(64, 7, 5), CFrame.new(0, 31, MOUTH_Z), P.Dark, Enum.Material.Metal, true)
+	part(hub, "ArchTrim", Vector3.new(64.4, 1, 5.4), CFrame.new(0, 27.4, MOUTH_Z), P.Gold, NEON, true)
+	part(hub, "ArchTrim", Vector3.new(64.4, 1, 5.4), CFrame.new(0, 34.6, MOUTH_Z), P.Cyan, NEON, true)
+	P.label(beam, "ADVENTURE  →", P.Gold, 0, 600, UDim2.fromOffset(520, 100))
 
 	local sp = Instance.new("SpawnLocation")
 	sp.Anchored, sp.Size, sp.Position = true, Vector3.new(14, 1, 14), Vector3.new(0, 0.5, 0)
@@ -74,25 +112,57 @@ local function buildHub(map: Model)
 	sp.Color = Color3.fromRGB(58, 120, 200)
 	sp.Parent = hub
 
+	-- training range: Pad1..3 left column, Pad4..6 right column; dummy 14 studs in front (outwards)
 	local pads = folder(hub, "TrainingPads")
+	local dummies = folder(hub, "TrainingDummies")
+	local dDecor = folder(hub, "TrainingDummyDecor")
 	for i = 1, 6 do
-		local a = math.rad(i * 60 + 30)
-		local pos = Vector3.new(math.cos(a) * 24, 0.5, math.sin(a) * 24)
-		local pad = part(pads, "Pad" .. i, Vector3.new(10, 1, 10), CFrame.new(pos) * CFrame.Angles(0, -a, 0), P.Dark, Enum.Material.Metal)
-		part(pads, "PadGlow", Vector3.new(8, 0.3, 8), CFrame.new(pos + Vector3.new(0, 0.55, 0)) * CFrame.Angles(0, -a, 0), P.Cyan, NEON, true)
-		pad.Name = "Pad" .. i
+		local side = i <= 3 and -1 or 1
+		local z = ({ -25, -5, 15 })[(i - 1) % 3 + 1]
+		local pos = Vector3.new(side * 30, 0.5, z)
+		local face = CFrame.lookAt(pos, pos + Vector3.new(side, 0, 0))
+		part(pads, "Pad" .. i, Vector3.new(10, 1, 10), face, P.Dark, Enum.Material.Metal)
+		part(pads, "PadGlow", Vector3.new(8, 0.3, 8), face + Vector3.new(0, 0.55, 0), P.Cyan, NEON, true)
+		part(pads, "PadArrow", Vector3.new(2, 0.2, 4), face * CFrame.new(0, 0.7, -2), P.Gold, NEON, true)
+		local dx = side * (30 + 14)
+		local board = cyl(dummies, "Dummy" .. i, 8, 1, CFrame.new(dx, 7, z) * CFrame.Angles(0, 0, math.pi / 2) * CFrame.Angles(0, 0, 0), Color3.fromRGB(240, 240, 240), Enum.Material.SmoothPlastic)
+		board.CFrame = CFrame.new(dx, 7, z) -- cylinder axis = X, i.e. the face points at the pad
+		board.CanCollide = false
+		part(dDecor, "DummyRing", Vector3.new(0.3, 5.6, 5.6), CFrame.new(dx - side * 0.6, 7, z), Color3.fromRGB(255, 70, 70), Enum.Material.SmoothPlastic, true).Shape = Enum.PartType.Cylinder
+		part(dDecor, "DummyRing", Vector3.new(0.3, 3.2, 3.2), CFrame.new(dx - side * 0.7, 7, z), Color3.fromRGB(245, 245, 245), Enum.Material.SmoothPlastic, true).Shape = Enum.PartType.Cylinder
+		part(dDecor, "DummyBull", Vector3.new(0.3, 1.2, 1.2), CFrame.new(dx - side * 0.8, 7, z), Color3.fromRGB(255, 70, 70), NEON, true).Shape = Enum.PartType.Cylinder
+		part(dDecor, "DummyPost", Vector3.new(1, 4, 1), CFrame.new(dx + side * 0.2, 2, z), P.Dark, Enum.Material.Metal, true)
+		part(dDecor, "DummyBase", Vector3.new(4, 0.6, 4), CFrame.new(dx + side * 0.2, 0.3, z), P.Cyan, NEON, true)
 	end
 
 	for _, s in ipairs(STATIONS) do
-		local a = math.rad(s[3])
-		local pos = Vector3.new(math.cos(a) * 45, 0, math.sin(a) * 45)
-		local face = CFrame.lookAt(pos, Vector3.zero)
+		local pos = Vector3.new(s[3], 0, s[4])
+		local face = CFrame.lookAt(pos, Vector3.new(0, 0, 0))
 		cyl(hub, s[1] .. "_Base", 14, 0.6, CFrame.new(pos + Vector3.new(0, 0.3, 0)), P.Dark, Enum.Material.Metal, true)
-		cyl(hub, s[1] .. "_Glow", 12.5, 0.7, CFrame.new(pos + Vector3.new(0, 0.32, 0)), s[4], NEON, true)
+		cyl(hub, s[1] .. "_Glow", 12.5, 0.7, CFrame.new(pos + Vector3.new(0, 0.32, 0)), s[5], NEON, true)
 		local blk = part(hub, s[1], Vector3.new(8, 8, 8), face + Vector3.new(0, 4.6, 0), Color3.fromRGB(46, 42, 88), Enum.Material.Metal)
-		part(hub, s[1] .. "_Trim", Vector3.new(8.4, 1, 8.4), face + Vector3.new(0, 9, 0), s[4], NEON, true)
-		part(hub, s[1] .. "_Face", Vector3.new(5, 4, 0.4), face * CFrame.new(0, 5.6, -4.1), s[4], NEON, true)
-		P.label(blk, s[2], s[4], 8)
+		part(hub, s[1] .. "_Trim", Vector3.new(8.4, 1, 8.4), face + Vector3.new(0, 9, 0), s[5], NEON, true)
+		part(hub, s[1] .. "_Face", Vector3.new(5, 4, 0.4), face * CFrame.new(0, 5.6, -4.1), s[5], NEON, true)
+		P.label(blk, s[2], s[5], 8)
+	end
+
+	-- teleport portals (StationService adds the prompts): glowing pad + small arch, in a row near the lane mouth
+	for n, z in ipairs(Zones) do
+		local acc = ZONE_ACCENT[z.id] or P.Cyan
+		local px, pz = (n - 3) * 20, -50
+		part(hub, "PortalRim_" .. z.id, Vector3.new(0.5, 12.6, 12.6), CFrame.new(px, 0.25, pz) * CFrame.Angles(0, 0, math.pi / 2), P.Dark, Enum.Material.Metal, true).Shape = Enum.PartType.Cylinder
+		local pad = cyl(hub, "Portal_" .. z.id, 11, 0.5, CFrame.new(px, 0.35, pz), acc, NEON)
+		pad.CanCollide = false
+		pad:SetAttribute("ZoneId", z.id)
+		pad:SetAttribute("PowerReq", z.powerReq)
+		pad.CastShadow = false
+		for side = -1, 1, 2 do
+			part(hub, "PortalPost", Vector3.new(1, 13, 1), CFrame.new(px + side * 5.5, 6.5, pz), P.Dark, Enum.Material.Metal, true)
+			part(hub, "PortalGlow", Vector3.new(0.6, 12, 1.2), CFrame.new(px + side * 5.5, 6.5, pz), acc, NEON, true)
+		end
+		part(hub, "PortalTop", Vector3.new(12, 1, 1.4), CFrame.new(px, 13.2, pz), acc, NEON, true)
+		part(hub, "PortalVeil", Vector3.new(10, 12, 0.2), CFrame.new(px, 6.6, pz), acc, Enum.Material.ForceField, true)
+		P.label(pad, z.name .. "\nPower " .. fmtPower(z.powerReq), acc, 11, 120, UDim2.fromOffset(240, 64))
 	end
 
 	local bp = Combat.WorldBoss.Position
@@ -106,67 +176,146 @@ local function buildHub(map: Model)
 	P.label(pit, "WORLD BOSS", Color3.fromRGB(255, 90, 110), 10)
 end
 
--- ===== Zones =====
-local function entryT(c: Vector3, half: Vector3, dir: Vector3): number -- ray from origin enters the zone square
-	local t0 = 0
-	local function slab(cc: number, h: number, d: number)
-		if math.abs(d) < 1e-4 then return end
-		local a, b = (cc - h) / d, (cc + h) / d
-		t0 = math.max(t0, math.min(a, b))
-	end
-	slab(c.X, half.X, dir.X)
-	slab(c.Z, half.Z, dir.Z)
-	return t0
-end
+-- ===== Zones (one straight lane) =====
+local THEME = { -- outland ground + bridge look + road patch style
+	meadow = { out = Color3.fromRGB(92, 168, 80), outMat = Enum.Material.Grass, bridge = Color3.fromRGB(150, 110, 70), bridgeMat = Enum.Material.WoodPlanks, patch = Color3.fromRGB(135, 215, 110), patchMat = Enum.Material.Grass },
+	desert = { out = Color3.fromRGB(205, 160, 105), outMat = Enum.Material.Sand, bridge = Color3.fromRGB(120, 95, 75), bridgeMat = Enum.Material.CorrodedMetal, patch = Color3.fromRGB(200, 160, 100), patchMat = Enum.Material.Sand },
+	frost = { out = Color3.fromRGB(215, 235, 250), outMat = Enum.Material.Snow, bridge = Color3.fromRGB(150, 200, 235), bridgeMat = Enum.Material.Ice, patch = Color3.fromRGB(170, 215, 245), patchMat = Enum.Material.Ice },
+	magma = { out = Color3.fromRGB(38, 28, 28), outMat = Enum.Material.Basalt, bridge = Color3.fromRGB(30, 26, 28), bridgeMat = Enum.Material.Metal, patch = Color3.fromRGB(255, 100, 30), patchMat = NEON },
+	void = { out = Color3.fromRGB(20, 12, 40), outMat = Enum.Material.Slate, bridge = Color3.fromRGB(26, 18, 50), bridgeMat = Enum.Material.Metal, patch = Color3.fromRGB(150, 70, 255), patchMat = NEON },
+}
 
-local function buildZone(parent: Folder, z)
+local function buildZone(parent: Folder, z, index: number)
 	local m = model(parent, z.id)
 	local accent = ZONE_ACCENT[z.id] or P.Cyan
-	part(m, "Ground", Vector3.new(z.size.X, 2, z.size.Z), CFrame.new(z.center.X, -1, z.center.Z), z.color, ZONE_MAT[z.id] or Enum.Material.Slate)
-	local sa = part(m, "SpawnArea", Vector3.new(z.size.X, 1, z.size.Z), CFrame.new(z.center.X, 0, z.center.Z), accent, nil)
+	local th = THEME[z.id]
+	local W, L, G = Zones.LaneWidth, Zones.StageLength, Zones.Gap
+	local half = W / 2
+	local cx = z.center.X
+	local startZ, endZ = z.gatePos.Z, z.center.Z - L / 2
+	local wallStart = index == 1 and MOUTH_Z or startZ + G -- hub-side end of this stage's walls (incl. bridge)
+	local wallLen = wallStart - endZ
+	local wallMid = (wallStart + endZ) / 2
+	local rng = Random.new(index * 7919)
+
+	part(m, "Ground", Vector3.new(W, 2, L), CFrame.new(cx, -1, z.center.Z), z.color, ZONE_MAT[z.id] or Enum.Material.Slate)
+	local sa = part(m, "SpawnArea", Vector3.new(W, 1, L), CFrame.new(cx, 0, z.center.Z), accent, nil)
 	invisible(sa)
 
-	local dir = Vector3.new(z.center.X, 0, z.center.Z).Unit
-	local half = Vector3.new(z.size.X / 2, 0, z.size.Z / 2)
-	local t = entryT(z.center, half, dir)
-	local face = CFrame.lookAt(Vector3.zero, dir)
-	local roadEnd, roadStart = t + 14, World.HubRadius - 2
-	local len = roadEnd - roadStart
-	local mid = dir * (roadStart + len / 2)
-	part(m, "Road", Vector3.new(16, 1, len), CFrame.lookAt(mid + Vector3.new(0, -0.5, 0), mid + dir + Vector3.new(0, -0.5, 0)), P.Dark, Enum.Material.Metal)
-	for side = -1, 1, 2 do -- neon edge lines
-		local p = mid + face.RightVector * side * 7.6
-		part(m, "RoadEdge", Vector3.new(0.8, 0.2, len), CFrame.lookAt(p + Vector3.new(0, 0.1, 0), p + dir + Vector3.new(0, 0.1, 0)), accent, NEON, true)
+	-- bridge over the 30-stud gap (hub side of the gate), same straight road
+	if index > 1 then
+		part(m, "Bridge", Vector3.new(W, 2, G), CFrame.new(cx, -1, startZ + G / 2), th.bridge, th.bridgeMat)
+		for side = -1, 1, 2 do
+			part(m, "BridgeRail", Vector3.new(0.8, 0.2, G), CFrame.new(cx + side * (half - 0.6), 0.12, startZ + G / 2), accent, NEON, true)
+		end
+		for n = 1, 4 do
+			part(m, "BridgePlank", Vector3.new(W - 2, 0.1, 0.5), CFrame.new(cx, 0.06, startZ + n * G / 5), th.bridge:Lerp(Color3.new(1, 1, 1), 0.15), th.bridgeMat, true)
+		end
 	end
-	local gp = dir * (t - 14)
-	local gate = part(m, "Gate", Vector3.new(24, 16, 2), CFrame.lookAt(gp + Vector3.new(0, 8, 0), gp + dir * 2 + Vector3.new(0, 8, 0)), accent, Enum.Material.ForceField)
+
+	-- invisible side walls (+ end wall on the last stage)
+	for side = -1, 1, 2 do
+		local w = part(m, "SideWall", Vector3.new(2, 60, wallLen), CFrame.new(cx + side * (half + 1), 30, wallMid), accent, nil)
+		w.Transparency = 1
+		w.CanQuery, w.CanTouch, w.CastShadow = false, false, false
+	end
+	if index == #Zones then
+		local ew = part(m, "EndWall", Vector3.new(W + 4, 60, 2), CFrame.new(cx, 30, endZ - 1), accent, nil)
+		ew.Transparency = 1
+		ew.CanQuery, ew.CanTouch, ew.CastShadow = false, false, false
+	end
+
+	-- lane dressing: curbs, edge lines, dashed centre line, themed path patches
+	local decor = folder(m, "Dressing")
+	for side = -1, 1, 2 do
+		part(decor, "Curb", Vector3.new(1.6, 1.2, wallLen), CFrame.new(cx + side * (half - 0.2), 0.4, wallMid), P.Dark:Lerp(z.color, 0.25), Enum.Material.Concrete, true)
+		part(decor, "EdgeLine", Vector3.new(0.5, 0.15, L), CFrame.new(cx + side * (half - 1.4), 0.08, z.center.Z), accent, NEON, true)
+	end
+	for zz = startZ - 12, endZ + 8, -24 do
+		part(decor, "Dash", Vector3.new(1.2, 0.1, 9), CFrame.new(cx, 0.06, zz), accent, NEON, true).Transparency = 0.45
+	end
+	for _ = 1, 14 do
+		local s = rng:NextNumber(6, 12)
+		local c = th.patch:Lerp(z.color, rng:NextNumber(0.2, 0.6))
+		local p = part(decor, "Patch", Vector3.new(s, 0.06, s * rng:NextNumber(0.6, 1.2)), CFrame.new(cx + rng:NextNumber(-half + 7, half - 7), 0.03, rng:NextNumber(endZ + 15, startZ - 15)) * CFrame.Angles(0, rng:NextNumber(0, 3), 0), c, th.patchMat, true)
+		if th.patchMat == NEON then
+			p.Size = Vector3.new(rng:NextNumber(0.4, 0.9), 0.06, rng:NextNumber(8, 18))
+			p.Transparency = 0.25
+		end
+	end
+	for zz = startZ - 40, endZ + 40, -60 do -- lamps on the wall line
+		for side = -1, 1, 2 do
+			part(decor, "LampPost", Vector3.new(0.8, 9, 0.8), CFrame.new(cx + side * (half + 2.2), 4.5, zz), P.Dark, Enum.Material.Metal, true)
+			P.ball(decor, "LampBulb", 2, CFrame.new(cx + side * (half + 2.2), 9.4, zz), accent, NEON)
+		end
+	end
+
+	-- gate (force field) at the stage start + frame + label
+	local gate = part(m, "Gate", Vector3.new(W, 30, 2), CFrame.new(cx, 15, startZ), accent, Enum.Material.ForceField)
 	gate:SetAttribute("PowerReq", z.powerReq)
 	gate:SetAttribute("ZoneId", z.id)
 	gate.CastShadow = false
 	for side = -1, 1, 2 do
-		local p = gp + face.RightVector * side * 13
-		part(m, "GatePost", Vector3.new(3, 20, 3), CFrame.new(p + Vector3.new(0, 10, 0)), P.Dark, Enum.Material.Metal, true).CanCollide = true
-		part(m, "GateLight", Vector3.new(3.6, 2, 3.6), CFrame.new(p + Vector3.new(0, 21, 0)), accent, NEON, true)
+		part(decor, "GatePost", Vector3.new(4, 34, 4), CFrame.new(cx + side * (half + 3), 17, startZ), P.Dark, Enum.Material.Metal, true)
+		part(decor, "GateLight", Vector3.new(4.6, 2, 4.6), CFrame.new(cx + side * (half + 3), 35, startZ), accent, NEON, true)
 	end
-	part(m, "GateBeam", Vector3.new(30, 2, 3), face + gp + Vector3.new(0, 20, 0), accent, NEON, true)
+	part(decor, "GateBeam", Vector3.new(W + 10, 3, 4), CFrame.new(cx, 32, startZ), P.Dark, Enum.Material.Metal, true)
+	part(decor, "GateBeamGlow", Vector3.new(W + 10.4, 0.8, 4.4), CFrame.new(cx, 30.2, startZ), accent, NEON, true)
+	P.label(gate, z.name .. "  |  Power " .. fmtPower(z.powerReq), accent, 21, 400, UDim2.fromOffset(420, 60))
 
-	-- landmark: between the hub and the zone centre so it is visible from the hub
-	local lpos = Vector3.new(z.center.X, 0, z.center.Z) - dir * 30
+	-- return portal just inside the gate
+	local rp = cyl(m, "ReturnPortal_" .. z.id, 10, 0.5, CFrame.new(cx, 0.35, startZ - 12), accent, NEON)
+	rp.CanCollide, rp.CastShadow = false, false
+	rp:SetAttribute("ZoneId", z.id)
+	cyl(decor, "ReturnRim", 11.6, 0.4, CFrame.new(cx, 0.25, startZ - 12), P.Dark, Enum.Material.Metal, true)
+	P.label(rp, "Back to Hub", Color3.new(1, 1, 1), 4, 70, UDim2.fromOffset(180, 36))
+
+	-- boss arena decoration (inside the road: flat, walkable)
+	local bp = z.bossPos
+	cyl(decor, "BossRing", 42, 0.3, CFrame.new(bp.X, 0.15, bp.Z), accent, NEON)
+	cyl(decor, "BossDisc", 39, 0.4, CFrame.new(bp.X, 0.18, bp.Z), P.Dark:Lerp(z.color, 0.3), Enum.Material.Slate)
+	cyl(decor, "BossCore", 12, 0.5, CFrame.new(bp.X, 0.22, bp.Z), accent, NEON)
+	for n = 1, 8 do
+		local a = n / 8 * math.pi * 2
+		part(decor, "BossRune", Vector3.new(1, 0.2, 5), CFrame.new(bp.X + math.cos(a) * 15, 0.3, bp.Z + math.sin(a) * 15) * CFrame.Angles(0, -a, 0), accent, NEON, true)
+	end
+	for side = -1, 1, 2 do -- tall banner towers outside the walls + arch at the far end
+		part(decor, "BossTower", Vector3.new(7, 40, 7), CFrame.new(cx + side * (half + 8), 20, bp.Z), P.Dark:Lerp(z.color, 0.2), Enum.Material.Slate, true)
+		part(decor, "BossTowerGlow", Vector3.new(7.4, 3, 7.4), CFrame.new(cx + side * (half + 8), 41, bp.Z), accent, NEON, true)
+		part(decor, "EndPillar", Vector3.new(4, 36, 4), CFrame.new(cx + side * (half + 3), 18, endZ + 2), P.Dark, Enum.Material.Metal, true)
+	end
+	part(decor, "EndBeam", Vector3.new(W + 10, 4, 4), CFrame.new(cx, 34, endZ + 2), P.Dark, Enum.Material.Metal, true)
+	part(decor, "EndGlow", Vector3.new(W + 10.4, 1, 4.4), CFrame.new(cx, 31.6, endZ + 2), accent, NEON, true)
+
+	-- landmark: tall, to the side of the road near the stage start so it is visible from the hub end
+	local lside = index % 2 == 1 and 1 or -1
+	local lz = startZ - 70
+	local lpos = Vector3.new(cx + lside * 80, GY, lz)
 	local lm = model(m, "Landmark")
-	P.Landmarks[z.id](lm, lpos, face, z.color)
+	P.Landmarks[z.id](lm, lpos, CFrame.new(), z.color)
 	if z.id ~= "void" then
 		part(lm, "Beacon", Vector3.new(3, 3, 3), CFrame.new(lpos + Vector3.new(0, 150, 0)), accent, NEON, true)
 	end
-	P.label(gate, z.name .. "  (" .. z.powerReq .. " PWR)", accent, 12)
 
-	-- decor rocks
-	local rng = Random.new(#z.id * 31)
-	local decor = folder(m, "Decor")
-	for _ = 1, 40 do
-		local p = Vector3.new(z.center.X + rng:NextNumber(-100, 100), 0, z.center.Z + rng:NextNumber(-100, 100))
-		if (p - lpos).Magnitude > 45 then
-			local s = rng:NextNumber(2, 7)
-			part(decor, "Rock", Vector3.new(s, s * 0.8, s), CFrame.new(p + Vector3.new(0, s * 0.3, 0)) * CFrame.Angles(rng:NextNumber(0, 3), rng:NextNumber(0, 3), 0), z.color:Lerp(Color3.new(0.3, 0.3, 0.3), 0.4), Enum.Material.Slate, true)
+	-- outland ground + roadside scenery + background silhouettes (decor only)
+	local sc = folder(m, "Scenery")
+	local outLen = wallStart - endZ + 20
+	for side = -1, 1, 2 do
+		part(sc, "Outland", Vector3.new(130, 4, outLen), CFrame.new(cx + side * (half + 65), -3, wallStart - outLen / 2 + 10), th.out, th.outMat, true)
+	end
+	local slotTop = index == 1 and wallStart - 10 or startZ + G - 6
+	for zz = slotTop, endZ + 10, -24 do
+		for side = -1, 1, 2 do
+			if not (side == lside and math.abs(zz - lz) < 55) then
+				P.Scenery[z.id](sc, cx + side * (half + 8 + rng:NextNumber(0, 12)), zz + rng:NextNumber(-5, 5), rng)
+			end
+		end
+	end
+	for zz = slotTop, endZ + 10, -34 do
+		for side = -1, 1, 2 do
+			if not (side == lside and math.abs(zz - lz) < 90) then
+				P.Backdrop[z.id](sc, cx + side * (half + 62 + rng:NextNumber(0, 40)), zz + rng:NextNumber(-8, 8), rng)
+			end
 		end
 	end
 end
@@ -219,8 +368,8 @@ function MapService.Init(_services)
 	map.ModelStreamingMode = Enum.ModelStreamingMode.Default
 	buildHub(map)
 	local zf = folder(map, "Zones")
-	for _, z in ipairs(Zones) do
-		buildZone(zf, z)
+	for i, z in ipairs(Zones) do
+		buildZone(zf, z, i)
 	end
 	buildArenas(map)
 	map.Parent = workspace

@@ -37,4 +37,10 @@ return {
 		icon = "rbxassetid://0", color = Color3.fromRGB(255, 79, 106),
 		perks = { dropMultiplier = 2 },
 	},
+	SeasonPremium = {
+		id = 0, order = 7, name = "Season Pass+", price = 399,
+		desc = "Unlock the premium Season Pass track: exclusive skins, titles and Gems.",
+		icon = "rbxassetid://0", color = Color3.fromRGB(255, 120, 200),
+		perks = { seasonPremium = true },
+	},
 }

@@ -22,6 +22,13 @@ return {
 	pvp = { rating = 1000, wins = 0, losses = 0, trophies = 0 },
 	clan = "",
 	codes = {},
+	-- Update 1
+	raid = { best = 0, tokens = 0, clears = 0 },
+	season = { id = 0, xp = 0, claimed = {}, premiumClaimed = {} },
+	achievements = {}, -- [id] = true
+	title = "",
+	spin = { last = 0 },
+	story = { step = 1, progress = 0 },
 	daily = { lastDay = 0, streak = 0 },
 	quests = { day = 0, list = {} },
 	settings = { music = true, sfx = true, lowFx = false },
