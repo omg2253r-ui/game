@@ -256,8 +256,13 @@ function MonetizationService.Init(services)
 		end
 		if kind == "pass" and GamePasses[key] then
 			grantPass(player, key, true)
-		elseif kind == "product" and Products[key] and Products[key].grant then
-			EconomyService.Grant(player, Products[key].grant, "studio-test")
+		elseif kind == "product" and Products[key] then
+			local handler = MonetizationService.ProductHandlers[key]
+			if handler then
+				handler(player)
+			elseif Products[key].grant then
+				EconomyService.Grant(player, Products[key].grant, "studio-test")
+			end
 			EconomyService.Toast(player, "[Studio] Granted " .. Products[key].name, "success")
 		end
 	end, 2)

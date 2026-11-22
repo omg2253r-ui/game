@@ -30,6 +30,7 @@ local order = {
 	"WorldBossService",
 	"ArenaService",
 	"TournamentService",
+	"GemShopService",
 }
 
 local services = {}

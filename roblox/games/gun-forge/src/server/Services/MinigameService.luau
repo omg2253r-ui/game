@@ -43,6 +43,10 @@ local function crate(player: Player)
 	return {}
 end
 
+function MinigameService.ResetCooldowns(player: Player)
+	cooldown[player] = {}
+end
+
 function MinigameService.Init(services)
 	S = services
 	Players.PlayerRemoving:Connect(function(p)

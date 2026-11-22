@@ -52,7 +52,8 @@ New for this game:
 | 1,000 / 6,000 Coins | Product | 25 / 99 | currency |
 | 120 Gems | Product | 49 | premium currency (cosmetic skins, extra minigame plays) |
 | x3 Training 30 min | Product | 39 | boost |
-| Instant Craft | Product | 15 | skip forge timer |
+| 700 Gems | Product | 249 | premium currency (+17%) |
+| Gem Shop | Gems | 10–60 | x3 boost 10 min, reset minigames, coin crate, material pack |
 
 ## 6. World
 - **Hub (spawn)**: Training Grounds (pads), Minigame booths, Forge, Fusion Altar, Rebirth statue, Arena portal, Clan hall, World Boss pit, leaderboards.

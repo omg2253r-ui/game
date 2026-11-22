@@ -7,9 +7,22 @@ local UIController = require(Controllers.UIController)
 local EffectsController = require(Controllers.EffectsController)
 
 local ZoneLightingController = require(Controllers.ZoneLightingController)
+local ClientState = require(script.Parent:WaitForChild("ClientState"))
+ClientState.Init()
 UIController.Init()
 task.spawn(ZoneLightingController.Init)
 task.spawn(EffectsController.Init)
+
+-- Gun Forge controllers (order = menu button order is set inside each)
+for _, name in ipairs({ "HudController", "MonsterController", "GunController", "MinigameController", "ForgeController",
+	"InventoryController", "PetsController", "ArenaController", "ClanController", "StationController" }) do
+	local ok, err = pcall(function()
+		require(Controllers:WaitForChild(name)).Init()
+	end)
+	if not ok then
+		warn("[Client] " .. name .. " failed:", err)
+	end
+end
 
 UIController.SettingsChanged = function(settings)
 	EffectsController.SetLowFx(settings.lowFx == true)
