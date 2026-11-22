@@ -230,6 +230,67 @@ function Hud.Init()
 		end
 	end)
 
+	-- sprint (Shift / mobile button) for the long lane: client-side speed boost on top of server speed
+	local UserInputService = game:GetService("UserInputService")
+	local sprinting = false
+	local function setSprint(on: boolean)
+		local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if not hum or sprinting == on then
+			return
+		end
+		sprinting = on
+		hum.WalkSpeed = if on then hum.WalkSpeed * 1.4 else hum.WalkSpeed / 1.4
+		TweenService:Create(Workspace.CurrentCamera, TweenInfo.new(0.25), { FieldOfView = if on then 80 else 70 }):Play()
+	end
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if not processed and input.KeyCode == Enum.KeyCode.LeftShift then
+			setSprint(true)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.KeyCode == Enum.KeyCode.LeftShift then
+			setSprint(false)
+		end
+	end)
+	if UserInputService.TouchEnabled then
+		local sb
+		sb = UI.button("RUN", C.PanelLight, function()
+			setSprint(not sprinting)
+			sb.BackgroundColor3 = if sprinting then C.Energy else C.PanelLight
+		end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -270, 1, -236), Size = UDim2.fromOffset(64, 64), Parent = gui })
+		UI.corner(UDim.new(1, 0)).Parent = sb
+	end
+	player.CharacterAdded:Connect(function()
+		sprinting = false
+		Workspace.CurrentCamera.FieldOfView = 70
+	end)
+
+	-- stage progress bar: distance from the gate to the boss of the stage you are in
+	local stageBar = UI.panel({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -134), Size = UDim2.fromOffset(360, 26), BackgroundColor3 = C.Bg, Visible = false, Parent = gui })
+	local stageFill = UI.new("Frame", { BackgroundColor3 = C.Energy, Size = UDim2.fromScale(0, 1), Parent = stageBar }, { UI.corner() })
+	local stageText = UI.label("", 14, { Size = UDim2.fromScale(1, 1), Parent = stageBar })
+	task.spawn(function()
+		while true do -- lint-ok (task.wait)
+			task.wait(0.2)
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local zid = player:GetAttribute("Zone")
+			local zone = nil
+			for _, z in ipairs(Zones) do
+				if z.id == zid then
+					zone = z
+				end
+			end
+			stageBar.Visible = root ~= nil and zone ~= nil
+			if root and zone then
+				local gz, bz = zone.gatePos.Z, zone.bossPos.Z
+				local r = math.clamp((root.Position.Z - gz) / (bz - gz), 0, 1)
+				stageFill.Size = stageFill.Size:Lerp(UDim2.fromScale(r, 1), 0.5)
+				stageFill.BackgroundColor3 = zone.color
+				stageText.Text = ("STAGE %d • %s  —  %d%% to BOSS 👑"):format(zone.stage, zone.name, math.floor(r * 100))
+			end
+		end
+	end)
+
 	-- training range: while TRAINING in the hub, your character shoots the nearest target dummy
 	task.spawn(function()
 		while true do -- lint-ok (task.wait)
