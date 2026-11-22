@@ -31,5 +31,7 @@ Plan first, build second. Each phase ends at a gate; never skip a gate.
 - Thumbnail 1920×1080 + icon 512 exported; `check.sh --release` PASS.
 
 ## How to run in Studio (tell the user)
+Easiest (no installs): `python3 roblox/tools/build_place.py roblox/games/<slug>` → send the `.rbxlx` to the user → double-click → Studio opens it → Play (F5). Rebuild after every code change.
+Dev workflow (live sync):
 Install Rojo plugin + CLI → `cd roblox/games/<slug> && rojo serve` → Studio: Rojo → Connect → Play.
 Game Settings → Security → enable "Studio Access to API Services" to test saving.

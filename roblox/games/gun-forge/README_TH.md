@@ -1,6 +1,12 @@
 # 🔫 Gun Forge Simulator — คู่มือ
 
-## เปิดเล่นใน Roblox Studio (เล่นได้ทันที ไม่ต้องอัปโหลดอะไร)
+## วิธีที่ง่ายที่สุด (ไม่ต้องติดตั้งอะไรเพิ่ม)
+1. ติดตั้ง Roblox Studio (https://create.roblox.com → Start Creating) บน PC/Mac
+2. ดาวน์โหลด `GunForge.rbxlx` (อยู่ในโฟลเดอร์นี้) → ดับเบิลคลิก หรือ Studio → File → Open from File
+3. กด **Play** (F5) — เล่นได้เลย
+> สร้างไฟล์ใหม่หลังแก้โค้ด: `python3 roblox/tools/build_place.py roblox/games/gun-forge`
+
+## วิธีสำหรับนักพัฒนา (Rojo — แก้โค้ดแล้ว sync สด)
 1. ติดตั้ง [Rojo](https://rojo.space/docs/v7/getting-started/installation/) (ปลั๊กอิน Studio + CLI)
 2. `cd roblox/games/gun-forge && rojo serve`
 3. เปิด Studio → Baseplate ใหม่ → ปลั๊กอิน Rojo → **Connect** → กด **Play**
