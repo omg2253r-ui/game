@@ -17,7 +17,7 @@ local Raid = {
 		{ id = "gems", name = "Gem Pouch", desc = "100 Gems", cost = 25, kind = "gems", amount = 100 },
 		{ id = "mats", name = "Material Pack", desc = "Common + core materials of your best tier", cost = 15, kind = "mats" },
 		{ id = "rare", name = "Rare Material Crate", desc = "2 boss materials of your best tier", cost = 45, kind = "rare" },
-		{ id = "title", name = "Trail Title: Raid Slayer", desc = "Exclusive title (one time)", cost = 150, kind = "title", title = "Raid Slayer" },
+		{ id = "title", name = "Trail Title: Raid Slayer", desc = "Exclusive title (one time)", cost = 150, kind = "title", title = "raid_slayer" },
 	},
 }
 return Raid

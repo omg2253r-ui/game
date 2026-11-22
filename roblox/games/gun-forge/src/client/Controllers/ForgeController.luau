@@ -158,8 +158,11 @@ local function renderEnchant()
 			have >= Guns.EnchantCost.RareCores, function()
 				local r = Net.invoke("Enchant", e.uid)
 				if r and r.kind then
+					task.delay(0.3, function()
+						Forge.Render()
+					end)
 					W.flash(UIController.Gui(), Color3.fromRGB(181, 108, 255))
-					UIController.Toast(("%s! %s"):format(r.name, enchText({ ench = r }):sub(6)), "success")
+					UIController.Toast(("%s! %s"):format(r.name, enchText({ ench = r }):sub(8)), "success")
 				elseif r and r.err then
 					UIController.Toast(r.err, "error")
 				end

@@ -82,6 +82,7 @@ function Rewards.Buy(S, p: Player, id): boolean
 		elseif item.kind == "title" then
 			dd.raid.owned = dd.raid.owned or {}
 			dd.raid.owned[item.id] = true
+			dd.achievements["title:" .. item.title] = true
 			dd.title = item.title
 		end
 	end)

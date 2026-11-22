@@ -16,6 +16,7 @@ A.Titles = {
 	pass_champ = { name = "Season Champion", color = Color3.fromRGB(255, 220, 100) },
 	elite_operator = { name = "Elite Operator", color = Color3.fromRGB(255, 90, 220) },
 	forge_legend = { name = "Forge Legend", color = Color3.fromRGB(255, 79, 216) },
+	raid_slayer = { name = "Raid Slayer", color = Color3.fromRGB(255, 120, 40) },
 	vex_chosen = { name = "Vex's Chosen", color = Color3.fromRGB(255, 255, 140) },
 }
 

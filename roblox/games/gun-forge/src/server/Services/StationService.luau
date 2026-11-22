@@ -29,7 +29,7 @@ function StationService.Init(services)
 		-- stage portals (hub) + return portals (inside each stage): server-side teleport
 		local function teleport(player: Player, to: Vector3)
 			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			if root and not player:GetAttribute("MatchId") then
+			if root and not player:GetAttribute("MatchId") and not player:GetAttribute("RaidId") then
 				root.CFrame = CFrame.new(to + Vector3.new(0, 4, 0))
 			end
 		end

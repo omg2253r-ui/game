@@ -28,8 +28,8 @@ local function startReload(player: Player)
 	a.reloadUntil = os.clock() + a.reload - 0.15 -- small slack for latency
 	Net.fire(player, "Ammo", 0, a.max, a.reload)
 	task.delay(a.reload - 0.15, function()
-		if ammo[player] == a then
-			a.mag = a.max
+		if ammo[player] == a and a.reloadUntil > 0 then
+			a.mag, a.reloadUntil = a.max, 0
 		end
 	end)
 end
@@ -48,7 +48,9 @@ end
 
 local function buildHandle(item): BasePart
 	local assets = ReplicatedStorage:FindFirstChild("Assets")
-	local src = assets and assets:FindFirstChild("Guns") and assets.Guns:FindFirstChild(item.id)
+	local folder = assets and assets:FindFirstChild("Guns")
+	-- per-rarity model (<type>_r<N>) first, then the generic <type> model, else code-built fallback
+	local src = folder and (folder:FindFirstChild(item.id .. "_r" .. item.rarity) or folder:FindFirstChild(item.id))
 	local rarityColor = Guns.Rarities[item.rarity].color
 	if src and src:IsA("BasePart") then
 		local h = src:Clone()
@@ -155,6 +157,9 @@ local function onFire(player: Player, kind, targetId)
 	local a = ammo[player]
 	if not a or now < a.reloadUntil then
 		return
+	end
+	if a.reloadUntil > 0 then -- reload finished but the delay callback has not run yet
+		a.mag, a.reloadUntil = a.max, 0
 	end
 	if a.mag <= 0 then
 		startReload(player)

@@ -53,6 +53,9 @@ function SpinService.Init(services)
 			return nil
 		end
 		local st = info(player)
+		if usePaid and st.freeIn <= 0 then
+			usePaid = false -- stale client UI: never charge Gems while a free spin is ready
+		end
 		if usePaid then
 			if st.paidLeft <= 0 or not S.EconomyService.Spend(player, "Gems", Config.GemCost) then
 				return nil

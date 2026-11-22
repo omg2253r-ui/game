@@ -81,6 +81,10 @@ local function removeMember(raid, p: Player, silent: boolean?)
 	end
 	if #raid.members == 0 then
 		raid.over = true
+		for id in pairs(raid.mons or {}) do -- don't leak monsters into the next raid on this slot
+			S.MonsterService.Remove(id)
+		end
+		raid.mons = {}
 		lobbies[raid.id] = nil
 		if raid.slot then
 			slotBusy[raid.slot] = false
