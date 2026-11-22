@@ -108,6 +108,47 @@
 | VFX_aura | mesh | make_vfx_mesh.py --type aura | art/blender/vfx/aura.fbx | | todo |
 | VFX_beam | mesh | make_vfx_mesh.py --type beam | art/blender/vfx/beam.fbx | | todo |
 | VFX_spike | mesh | make_vfx_mesh.py --type spike | art/blender/vfx/spike.fbx | | todo |
+| Gun_pistol_r2 | mesh | make_gun.py --type pistol --rarity 2 | art/blender/guns/pistol_r2.fbx | Assets.Guns.pistol_r2 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_pistol_r3 | mesh | make_gun.py --type pistol --rarity 3 | art/blender/guns/pistol_r3.fbx | Assets.Guns.pistol_r3 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_pistol_r4 | mesh | make_gun.py --type pistol --rarity 4 | art/blender/guns/pistol_r4.fbx | Assets.Guns.pistol_r4 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_smg_r2 | mesh | make_gun.py --type smg --rarity 2 | art/blender/guns/smg_r2.fbx | Assets.Guns.smg_r2 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_smg_r3 | mesh | make_gun.py --type smg --rarity 3 | art/blender/guns/smg_r3.fbx | Assets.Guns.smg_r3 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_smg_r4 | mesh | make_gun.py --type smg --rarity 4 | art/blender/guns/smg_r4.fbx | Assets.Guns.smg_r4 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_shotgun_r2 | mesh | make_gun.py --type shotgun --rarity 2 | art/blender/guns/shotgun_r2.fbx | Assets.Guns.shotgun_r2 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_shotgun_r3 | mesh | make_gun.py --type shotgun --rarity 3 | art/blender/guns/shotgun_r3.fbx | Assets.Guns.shotgun_r3 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_shotgun_r4 | mesh | make_gun.py --type shotgun --rarity 4 | art/blender/guns/shotgun_r4.fbx | Assets.Guns.shotgun_r4 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_rifle_r2 | mesh | make_gun.py --type rifle --rarity 2 | art/blender/guns/rifle_r2.fbx | Assets.Guns.rifle_r2 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_rifle_r3 | mesh | make_gun.py --type rifle --rarity 3 | art/blender/guns/rifle_r3.fbx | Assets.Guns.rifle_r3 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_rifle_r4 | mesh | make_gun.py --type rifle --rarity 4 | art/blender/guns/rifle_r4.fbx | Assets.Guns.rifle_r4 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_blaster_r2 | mesh | make_gun.py --type blaster --rarity 2 | art/blender/guns/blaster_r2.fbx | Assets.Guns.blaster_r2 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_blaster_r3 | mesh | make_gun.py --type blaster --rarity 3 | art/blender/guns/blaster_r3.fbx | Assets.Guns.blaster_r3 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_blaster_r4 | mesh | make_gun.py --type blaster --rarity 4 | art/blender/guns/blaster_r4.fbx | Assets.Guns.blaster_r4 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_railgun_r2 | mesh | make_gun.py --type railgun --rarity 2 | art/blender/guns/railgun_r2.fbx | Assets.Guns.railgun_r2 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_railgun_r3 | mesh | make_gun.py --type railgun --rarity 3 | art/blender/guns/railgun_r3.fbx | Assets.Guns.railgun_r3 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Gun_railgun_r4 | mesh | make_gun.py --type railgun --rarity 4 | art/blender/guns/railgun_r4.fbx | Assets.Guns.railgun_r4 (optional rarity variant; r2 muzzle ring, r3 scope/band, r4 fins+core) | todo |
+| Decor_meadow_mushroom | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/meadow/mushroom.fbx | ReplicatedStorage.Assets.Decor.meadow.mushroom (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_meadow_flower_cluster | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/meadow/flower_cluster.fbx | ReplicatedStorage.Assets.Decor.meadow.flower_cluster (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_meadow_bush | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/meadow/bush.fbx | ReplicatedStorage.Assets.Decor.meadow.bush (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_desert_cactus | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/desert/cactus.fbx | ReplicatedStorage.Assets.Decor.desert.cactus (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_desert_scrap_pile | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/desert/scrap_pile.fbx | ReplicatedStorage.Assets.Decor.desert.scrap_pile (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_desert_oil_barrel | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/desert/oil_barrel.fbx | ReplicatedStorage.Assets.Decor.desert.oil_barrel (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_frost_ice_crystal_cluster | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/frost/ice_crystal_cluster.fbx | ReplicatedStorage.Assets.Decor.frost.ice_crystal_cluster (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_frost_snow_pine | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/frost/snow_pine.fbx | ReplicatedStorage.Assets.Decor.frost.snow_pine (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_frost_frozen_rock | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/frost/frozen_rock.fbx | ReplicatedStorage.Assets.Decor.frost.frozen_rock (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_magma_lava_rock | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/magma/lava_rock.fbx | ReplicatedStorage.Assets.Decor.magma.lava_rock (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_magma_forge_pipe | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/magma/forge_pipe.fbx | ReplicatedStorage.Assets.Decor.magma.forge_pipe (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_magma_ember_brazier | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/magma/ember_brazier.fbx | ReplicatedStorage.Assets.Decor.magma.ember_brazier (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_void_neon_pillar | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/void/neon_pillar.fbx | ReplicatedStorage.Assets.Decor.void.neon_pillar (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_void_floating_shard | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/void/floating_shard.fbx | ReplicatedStorage.Assets.Decor.void.floating_shard (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Decor_void_void_obelisk | mesh (<=800 tris) | make_asset.py --type zones | art/blender/props/zones/void/void_obelisk.fbx | ReplicatedStorage.Assets.Decor.void.void_obelisk (Anchored, CanCollide=false, CollisionFidelity=Box) | todo |
+| Prop_training_dummy | mesh | make_asset.py --type gameplay | art/blender/props/training_dummy.fbx | Assets.Props.training_dummy (Anchored, origin bottom-centre) | todo |
+| Prop_stage_gate_arch | mesh | make_asset.py --type gameplay | art/blender/props/stage_gate_arch.fbx | Assets.Props.stage_gate_arch (Anchored, origin bottom-centre) | todo |
+| Prop_return_portal_pad | mesh | make_asset.py --type gameplay | art/blender/props/return_portal_pad.fbx | Assets.Props.return_portal_pad (Anchored, origin bottom-centre) | todo |
+| Prop_raid_spawn_pad | mesh | make_asset.py --type gameplay | art/blender/props/raid_spawn_pad.fbx | Assets.Props.raid_spawn_pad (Anchored, origin bottom-centre) | todo |
+| Prop_raid_cover_block | mesh | make_asset.py --type gameplay | art/blender/props/raid_cover_block.fbx | Assets.Props.raid_cover_block (Anchored, origin bottom-centre) | todo |
+| Prop_loot_chest_raid | mesh | make_asset.py --type gameplay | art/blender/props/loot_chest_raid.fbx | Assets.Props.loot_chest_raid (Anchored, origin bottom-centre) | todo |
+| Prop_season_pass_trophy | mesh | make_asset.py --type gameplay | art/blender/props/season_pass_trophy.fbx | Assets.Props.season_pass_trophy (Anchored, origin bottom-centre) | todo |
+| props_sheet | image | render_shot.py | art/renders/props_sheet.png | preview of the 15 zone props (left to right by zone) | done |
 | hero_render | image | render_shot.py | art/renders/hero.png (1600x1000, transparent) | | done (thumbnail input) |
 | guns_sheet | image | render_shot.py + PIL | art/renders/guns_sheet.png | | done |
 

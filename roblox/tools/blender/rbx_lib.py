@@ -13,7 +13,7 @@ import sys
 import bpy
 import bmesh
 
-TRI_BUDGET = {"prop": 1500, "hero_prop": 5000, "character": 6000, "vfx": 400, "building": 8000}
+TRI_BUDGET = {"prop": 1500, "hero_prop": 5000, "character": 6000, "vfx": 400, "zone_prop": 800, "building": 8000}
 ROBLOX_MESH_LIMIT = 20000  # hard limit per MeshPart
 
 
