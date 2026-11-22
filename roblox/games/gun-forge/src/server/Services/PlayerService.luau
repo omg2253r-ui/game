@@ -25,7 +25,7 @@ local function setLeaderstat(player: Player, power: number)
 end
 
 function PlayerService.AddPower(player: Player, amount: number)
-	if amount <= 0 then
+	if not (amount > 0) or amount == math.huge then -- also rejects NaN (would corrupt saved Power)
 		return
 	end
 	local power = 0

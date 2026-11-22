@@ -44,10 +44,14 @@ end
 
 local function offline(player: Player, data)
 	local cfg = Training.Offline
-	if data.lastSeen <= 0 then
+	local last = data.lastSeen
+	S.DataService.Update(player, function(d) -- consume the offline window now (rejoin must not pay twice)
+		d.lastSeen = os.time()
+	end)
+	if last <= 0 then
 		return
 	end
-	local elapsed = math.min(os.time() - data.lastSeen, cfg.MaxHours * 3600)
+	local elapsed = math.min(os.time() - last, cfg.MaxHours * 3600)
 	if elapsed < cfg.MinMinutes * 60 then
 		return
 	end
@@ -71,6 +75,9 @@ function TrainingService.Init(services)
 		push(player)
 	end)
 	Players.PlayerRemoving:Connect(function(p)
+		S.DataService.Update(p, function(d)
+			d.lastSeen = os.time()
+		end)
 		state[p] = nil
 	end)
 

@@ -39,7 +39,7 @@ function InventoryService.SyncSoon(player: Player)
 		return
 	end
 	pending[player] = true
-	task.delay(0.15, function()
+	task.delay(0.4, function()
 		pending[player] = nil
 		if player.Parent then
 			InventoryService.Sync(player)

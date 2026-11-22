@@ -19,6 +19,24 @@ local localClans: { [string]: any } = {} -- offline fallback (Studio without API
 local pendingXp: { [string]: number } = {}
 local invites: { [Player]: { [string]: boolean } } = {}
 local warCache = { t = 0, list = {} }
+local busy: { [Player]: boolean } = {} -- one clan mutation per player at a time (handlers yield)
+
+-- wraps a RemoteFunction handler: serialises per player and never throws back at the client
+local function guarded(fn)
+	return function(player: Player, ...)
+		if busy[player] then
+			return "Busy"
+		end
+		busy[player] = true
+		local ok, res = pcall(fn, player, ...)
+		busy[player] = nil
+		if not ok then
+			warn("[Clan]", res)
+			return "Error"
+		end
+		return res
+	end
+end
 
 local function week(): number
 	return math.floor((os.time() - 345600) / 604800) -- weeks starting Monday UTC
@@ -29,25 +47,30 @@ local function warStore()
 	return ok and s or nil
 end
 
+-- returns data, fetched (fetched=false: the DataStore read failed, data is only a fallback)
 local function load(id: string, fresh: boolean?)
 	local c = cache[id]
 	if c and not fresh and os.clock() - c.t < 60 then
-		return c.data
+		return c.data, true
 	end
 	local data = localClans[id]
+	local fetched = not okStore
 	if okStore then
 		local ok, res = pcall(store.GetAsync, store, id)
 		if ok then
-			data = res
+			data, fetched = res, true
 		end
 	end
-	cache[id] = { data = data, t = os.clock() }
-	return data
+	if fetched then
+		cache[id] = { data = data, t = os.clock() }
+	end
+	return data, fetched
 end
 
 -- atomic modify; fn(data) returns data or nil to abort
 local function modify(id: string, fn)
 	local result
+	local useLocal = not okStore
 	if okStore then
 		local ok, err = pcall(function()
 			store:UpdateAsync(id, function(old) -- lint-ok (pcall)
@@ -60,13 +83,16 @@ local function modify(id: string, fn)
 			if not tostring(err):find("API") then
 				return nil
 			end
+			result, useLocal = nil, true -- Studio without API access: keep clans in memory
 		end
 	end
-	if not okStore or result == nil then
+	if useLocal then
 		result = fn(localClans[id])
 	end
-	localClans[id] = result
-	cache[id] = { data = result, t = os.clock() }
+	if result ~= nil then
+		localClans[id] = result
+		cache[id] = { data = result, t = os.clock() }
+	end
 	return result
 end
 
@@ -158,7 +184,7 @@ end
 
 local function info(player: Player)
 	local id, clan = myClan(player)
-	if not clan then
+	if not clan or not clan.members[tostring(player.UserId)] then
 		return { clan = nil }
 	end
 	local members = {}
@@ -178,10 +204,10 @@ function ClanService.Init(services)
 
 	S.DataService.Loaded:Connect(function(player, data)
 		if data.clan ~= "" then
-			local clan = load(data.clan, true)
-			if not clan or not clan.members[tostring(player.UserId)] then
+			local clan, fetched = load(data.clan, true)
+			if fetched and (not clan or not clan.members[tostring(player.UserId)]) then
 				setClan(player, "") -- kicked / disbanded while away
-			else
+			elseif clan and clan.members[tostring(player.UserId)] then
 				applyTag(player, clan)
 			end
 		end
@@ -193,11 +219,12 @@ function ClanService.Init(services)
 	end)
 	Players.PlayerRemoving:Connect(function(p)
 		invites[p] = nil
+		busy[p] = nil
 	end)
 
 	Net.handle("ClanInfo", info, 3)
 
-	Net.handle("ClanCreate", function(player, name, tag)
+	Net.handle("ClanCreate", guarded(function(player, name, tag)
 		if type(name) ~= "string" or type(tag) ~= "string" then
 			return "Invalid"
 		end
@@ -216,14 +243,18 @@ function ClanService.Init(services)
 			return ("Need %d Coins"):format(C.CreateCoins)
 		end
 		local id = HttpService:GenerateGUID(false)
-		modify(id, function()
+		local made = modify(id, function()
 			return { name = name, tag = tag, owner = player.UserId, xp = 0, created = os.time(),
 				members = { [tostring(player.UserId)] = { role = "1Leader", name = player.DisplayName } } }
 		end)
+		if not made then
+			S.EconomyService.Add(player, "Coins", C.CreateCoins, "clan_refund", false)
+			return "Could not create clan, try again"
+		end
 		setClan(player, id)
-		applyTag(player, load(id))
+		applyTag(player, made)
 		return "OK"
-	end, 1)
+	end), 1)
 
 	Net.on("ClanInviteSend", function(player, targetUserId)
 		local id, clan = myClan(player)
@@ -231,8 +262,8 @@ function ClanService.Init(services)
 		if not clan or not target or target == player then
 			return
 		end
-		local role = clan.members[tostring(player.UserId)].role
-		if role == "3Member" then
+		local mine = clan.members[tostring(player.UserId)]
+		if not mine or mine.role == "3Member" then
 			return
 		end
 		invites[target] = invites[target] or {}
@@ -240,7 +271,7 @@ function ClanService.Init(services)
 		Net.fire(target, "ClanInvite", { id = id, name = clan.name, tag = clan.tag, from = player.DisplayName })
 	end, 3)
 
-	Net.handle("ClanAccept", function(player, id)
+	Net.handle("ClanAccept", guarded(function(player, id)
 		if type(id) ~= "string" or not (invites[player] and invites[player][id]) or myClan(player) then
 			return "No invite"
 		end
@@ -267,12 +298,17 @@ function ClanService.Init(services)
 		setClan(player, id)
 		applyTag(player, res)
 		return "OK"
-	end, 2)
+	end), 2)
 
-	Net.handle("ClanLeave", function(player)
+	Net.handle("ClanLeave", guarded(function(player)
 		local id, clan = myClan(player)
-		if not id or not clan then
+		if not id then
 			return "Not in a clan"
+		end
+		if not clan then -- stale reference to a missing clan record: just detach
+			setClan(player, "")
+			applyTag(player, nil)
+			return "OK"
 		end
 		local uid = tostring(player.UserId)
 		modify(id :: string, function(c)
@@ -297,19 +333,23 @@ function ClanService.Init(services)
 		setClan(player, "")
 		applyTag(player, nil)
 		return "OK"
-	end, 2)
+	end), 2)
 
 	-- action: "kick" | "promote" | "demote"
-	Net.handle("ClanManage", function(player, targetUserId, action)
+	Net.handle("ClanManage", guarded(function(player, targetUserId, action)
 		local id, clan = myClan(player)
 		if not clan or type(targetUserId) ~= "number" then
 			return "Invalid"
 		end
-		local me = clan.members[tostring(player.UserId)].role
+		local mine = clan.members[tostring(player.UserId)]
+		local me = mine and mine.role
 		local key = tostring(targetUserId)
 		local them = clan.members[key]
-		if not them or me >= them.role then
+		if not me or not them or me >= them.role then
 			return "No permission"
+		end
+		if action ~= "kick" and action ~= "promote" and action ~= "demote" then
+			return "Invalid"
 		end
 		modify(id :: string, function(c)
 			local m = c and c.members[key]
@@ -331,7 +371,7 @@ function ClanService.Init(services)
 			applyTag(target, nil)
 		end
 		return "OK"
-	end, 3)
+	end), 3)
 
 	Net.handle("ClanWarTop", function()
 		if os.clock() - warCache.t > 120 then

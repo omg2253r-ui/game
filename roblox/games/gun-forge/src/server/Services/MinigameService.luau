@@ -71,7 +71,7 @@ function MinigameService.Init(services)
 
 	Net.handle("MinigameEnd", function(player, score)
 		local a = active[player]
-		if not a or type(score) ~= "number" then
+		if not a or type(score) ~= "number" or score ~= score then
 			return nil
 		end
 		active[player] = nil

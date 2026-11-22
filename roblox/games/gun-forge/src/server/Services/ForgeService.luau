@@ -98,7 +98,7 @@ function ForgeService.Init(services)
 
 	Net.handle("ForgeFinish", function(player, sessionId, perfects)
 		local sess = sessions[player]
-		if not sess or sess.id ~= sessionId or type(perfects) ~= "number" then
+		if not sess or sess.id ~= sessionId or type(perfects) ~= "number" or perfects ~= perfects then
 			return nil
 		end
 		if os.clock() - sess.t0 < Recipes.Minigame.MinSeconds then

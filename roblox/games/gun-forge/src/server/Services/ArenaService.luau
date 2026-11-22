@@ -138,6 +138,19 @@ local function finish(match, winner: string?)
 end
 
 local function begin(match)
+	-- drop players who left while the match was pending
+	for team, list in pairs(match.teams) do
+		for i = #list, 1, -1 do
+			if not list[i].Parent then
+				table.remove(list, i)
+			end
+		end
+		if #list == 0 then
+			match.arenaIndex = 0
+			finish(match, if team == "A" then "B" else "A")
+			return true
+		end
+	end
 	for i, arena in ipairs(arenas) do
 		if not busy[i] then
 			busy[i] = match
@@ -158,6 +171,11 @@ local function begin(match)
 		end
 	end
 	return false
+end
+
+function ArenaService.Dequeue(p: Player)
+	removeFromQueues(p)
+	Net.fire(p, "QueueState", nil)
 end
 
 -- teamA/teamB: lists of players. opts: { killsToWin, minutes, ranked, onEnd(winnerTeam|nil, match) }

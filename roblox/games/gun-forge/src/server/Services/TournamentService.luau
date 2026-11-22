@@ -93,6 +93,7 @@ local function run()
 			end
 		end
 		state.phase = "idle"
+		broadcast()
 		Net.fireAll("Announce", "Tournament cancelled (not enough players).")
 		return
 	end
@@ -133,6 +134,7 @@ function TournamentService.Init(services)
 		if not S.EconomyService.Spend(player, "Coins", T.EntryCoins) then
 			return false
 		end
+		S.ArenaService.Dequeue(player)
 		table.insert(state.entrants, player)
 		state.pot += T.EntryCoins
 		player:SetAttribute("InTournament", true)

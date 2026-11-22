@@ -46,6 +46,18 @@ Gate rule: a phase starts only after the previous gate is ticked by rbx-director
 - [ ] Passes/products on Creator Hub · thumbnail/icon · description · 4-week roadmap (W1 balance, W2 zone 6, W3 2x weekend + event pets, W4 trading)
 
 ## Log (newest first)
+- Director: fixed open MINORs (pending match with leavers, TourJoin dequeues). Remaining launch tasks: ids/icons on Creator Hub, Studio playtest.
+- qa: code review of new services/controllers (check.sh PASS; --release only fails on placeholder ids/icons = launch task). Findings:
+  - MAJOR MinigameService:~78 / ForgeService:~100 — NaN score/perfects from client passed clamp -> NaN Power/quality saved -> fixed (reject NaN)
+  - MAJOR PlayerService.AddPower — NaN/inf amount corrupted saved Power -> fixed (guard `not (amount > 0)`)
+  - MAJOR TrainingService offline() — lastSeen not consumed on join: quick rejoin re-paid offline Power -> fixed (reset on load + on leave)
+  - MAJOR ClanService load/Loaded — transient DataStore read failure cleared player's clan; failed modify wiped cache -> fixed (fetched flag, no cache on failure)
+  - MAJOR ClanService handlers — concurrent Create/Accept (yield in filter/UpdateAsync) double-charge / double-join; nil member index threw to client -> fixed (per-player guard + pcall, refund on failed create, stale-clan Leave)
+  - MINOR InventoryService.SyncSoon — full inventory resent up to 6x/s on drops -> debounce 0.4s
+  - MINOR TournamentService — cancelled signup never broadcast (client kept JOIN) -> fixed; leaver's entry fee stays in pot (by design)
+  - MINOR ArenaService — pending match with a player who left waits for arena, TourJoin while queued can double-book; Studio w/o Map.Arena stalls tournament up to 600s -> open
+  - MINOR MinigameService — TargetRush/Reload score is client-reported (capped, min duration, 120s cooldown; worst case = 60s of training) -> accepted
+  - MINOR PetsController — LowFx hides other players' pets without destroying them (cosmetic) -> open
 - ui-designer: store art done: art/store thumbnail+icon (A) and art/store/v2 (B, A/B test); make_thumbnail.py gained --ray-alpha + hero hot-spot. Upload to Creator Hub pending.
 - 3d-artist: make_gun.py + blob/drone styles + 4 props added; 12 guns, 20 monsters, 18 pets, 7 props, 5 vfx FBX + hero.png/guns_sheet.png generated, all within tri budget (see ASSETS.md).
 - world-builder: MapService/MapParts build workspace.Map (Hub, 5 Zones+gates+roads+landmarks, 3 Arenas) in code; ZoneLightingController applies per-zone presets + banner; StarterMap disabled.
