@@ -18,7 +18,7 @@ Gate rule: a phase starts only after the previous gate is ticked by rbx-director
 - R2 (after launch): trading, events
 
 ## Phase 1 — Design (rbx-director + rbx-economy)          Gate G1: user approves GDD
-- [x] GDD.md  - [x] Economy.luau / GamePasses.luau / Products.luau  - [ ] **User approval**
+- [x] GDD.md  - [x] Economy.luau / GamePasses.luau / Products.luau  - [x] **User approval** (G1 ✔)
 
 ## Phase 2 — Scaffold (rbx-engineer)                      Gate G2
 - [x] new_game.sh  - [ ] Disable demo Collectibles, Power leaderstat, content config skeletons  - [ ] check.sh PASS
@@ -30,11 +30,11 @@ Gate rule: a phase starts only after the previous gate is ticked by rbx-director
 - [ ] M3 ArenaService (queues, matches, normalized stats, Elo) · TournamentService · ClanService (DataStore + MemoryStore, clan war board)
 - [ ] Client: GunController (aim, auto-fire, tracers), TrainingController, MinigameController, ForgeController (assembly QTE), FusionController (hatch), ArenaController
 ### rbx-world-builder
-- [ ] Hub layout (pads, booths, forge, altar, rebirth, arena portal, clan hall, boss pit) · 5 zones + portals + gates · 3 arena maps · per-zone presets
+- [x] (code: MapService, ZoneLightingController) Hub layout (pads, booths, forge, altar, rebirth, arena portal, clan hall, boss pit) · 5 zones + portals + gates · 3 arena maps · per-zone presets
 ### rbx-3d-artist
-- [ ] Gun builder (6 types, parametric) in make_asset.py · 15 monsters + 5 bosses · 18 pets · forge/altar/pads/portals · VFX meshes
+- [x] Gun builder (6 types, parametric, make_gun.py) · 15 monsters + 5 bosses · 18 pets · forge/altar/pads/portals · VFX meshes (FBX in art/blender, renders in art/renders; ids pending Studio upload)
 ### rbx-ui-designer
-- [ ] Theme palette · Training HUD + x2 button · 3 minigame screens · Forge QTE · Hatch · Inventory/Index · PvP/Tournament/Clan panels · icons · thumbnail + icon
+- [x] Theme palette · [x] icons (31) + rarity frames + vfx tracer/muzzle · [ ] Training HUD + x2 button · 3 minigame screens · Forge QTE · Hatch · Inventory/Index · PvP/Tournament/Clan panels · [x] thumbnail + icon
 
 ## Phase 4 — Integrate (rbx-engineer)                       Gate G4
 - [ ] Assets in ReplicatedStorage.Assets · ids in configs · 2-player Studio test of full loop
@@ -46,4 +46,8 @@ Gate rule: a phase starts only after the previous gate is ticked by rbx-director
 - [ ] Passes/products on Creator Hub · thumbnail/icon · description · 4-week roadmap (W1 balance, W2 zone 6, W3 2x weekend + event pets, W4 trading)
 
 ## Log (newest first)
-- G1 pending: GDD + economy configs drafted by rbx-director/rbx-economy.
+- ui-designer: store art done: art/store thumbnail+icon (A) and art/store/v2 (B, A/B test); make_thumbnail.py gained --ray-alpha + hero hot-spot. Upload to Creator Hub pending.
+- 3d-artist: make_gun.py + blob/drone styles + 4 props added; 12 guns, 20 monsters, 18 pets, 7 props, 5 vfx FBX + hero.png/guns_sheet.png generated, all within tri budget (see ASSETS.md).
+- world-builder: MapService/MapParts build workspace.Map (Hub, 5 Zones+gates+roads+landmarks, 3 Arenas) in code; ZoneLightingController applies per-zone presets + banner; StarterMap disabled.
+- ui-designer: Theme neon restyle (+Energy/Forge/Gold/Rarity), 19 new icons, 5 rarity frames, tracer+muzzle VFX generated; ids pending upload (ASSETS.md).
+- G1 approved by user → Phase 2 + M1 started.

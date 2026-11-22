@@ -5,6 +5,7 @@ local Services = script.Parent.Services
 local order = {
 	"DataService",
 	"WorldService",
+	"MapService",
 	"MonetizationService",
 	"EconomyService",
 	"AnalyticsService",
@@ -12,7 +13,23 @@ local order = {
 	"RewardService",
 	"LeaderboardService",
 	"CollectibleService",
-	-- genre services go here (e.g. "TycoonService", "WaveService")
+	-- Gun Forge
+	"PlayerService",
+	"InventoryService",
+	"PetService",
+	"ClanService",
+	"TrainingService",
+	"ZoneService",
+	"MonsterService",
+	"GunService",
+	"ForgeService",
+	"MinigameService",
+	"StationService",
+	"RebirthService",
+	"CodesService",
+	"WorldBossService",
+	"ArenaService",
+	"TournamentService",
 }
 
 local services = {}

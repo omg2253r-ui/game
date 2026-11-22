@@ -6,7 +6,9 @@ local Controllers = script.Parent:WaitForChild("Controllers")
 local UIController = require(Controllers.UIController)
 local EffectsController = require(Controllers.EffectsController)
 
+local ZoneLightingController = require(Controllers.ZoneLightingController)
 UIController.Init()
+task.spawn(ZoneLightingController.Init)
 task.spawn(EffectsController.Init)
 
 UIController.SettingsChanged = function(settings)

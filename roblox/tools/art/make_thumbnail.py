@@ -37,7 +37,7 @@ def font(path, size):
     return ImageFont.load_default(size)
 
 
-def gradient_bg(w, h, top, bottom, rays=True, seed_color=None):
+def gradient_bg(w, h, top, bottom, rays=True, seed_color=None, ray_alpha=38):
     img = Image.new("RGBA", (w, h))
     px = img.load()
     t, b = hexc(top), hexc(bottom)
@@ -54,10 +54,15 @@ def gradient_bg(w, h, top, bottom, rays=True, seed_color=None):
             a0 = 2 * math.pi * i / n
             a1 = a0 + math.pi / n
             r = w * 1.5
-            d.polygon([(cx, cy), (cx + r * math.cos(a0), cy + r * math.sin(a0)), (cx + r * math.cos(a1), cy + r * math.sin(a1))], fill=38)
+            d.polygon([(cx, cy), (cx + r * math.cos(a0), cy + r * math.sin(a0)), (cx + r * math.cos(a1), cy + r * math.sin(a1))], fill=ray_alpha)
         ray = ray.filter(ImageFilter.GaussianBlur(6))
         glow = Image.new("RGBA", (w, h), seed_color or (255, 255, 255, 255))
         img = Image.composite(glow, img, ray)
+        # soft radial hot-spot behind the hero
+        hs = Image.new("L", (w, h), 0)
+        ImageDraw.Draw(hs).ellipse([cx - w * 0.28, cy - h * 0.38, cx + w * 0.28, cy + h * 0.38], fill=110)
+        hs = hs.filter(ImageFilter.GaussianBlur(w * 0.08))
+        img = Image.composite(glow, img, hs)
     return img
 
 
@@ -143,7 +148,7 @@ def build(a, w, h, square=False):
     if a.bg:
         img = cover(Image.open(a.bg).convert("RGBA"), w, h)
     else:
-        img = gradient_bg(w, h, a.top, a.bottom, seed_color=hexc(a.ray))
+        img = gradient_bg(w, h, a.top, a.bottom, seed_color=hexc(a.ray), ray_alpha=a.ray_alpha)
     img = vignette(img, 0.45)
     if a.hero:
         hero = Image.open(a.hero).convert("RGBA")
@@ -174,6 +179,7 @@ def main():
     p.add_argument("--top", default="#36c3ff")
     p.add_argument("--bottom", default="#5b2bd6")
     p.add_argument("--ray", default="#bff2ff")
+    p.add_argument("--ray-alpha", type=int, default=38, help="sun-ray opacity 0-255")
     p.add_argument("--glow", default="#ffe27a")
     p.add_argument("--title-top", dest="title_top", default="#fff36b")
     p.add_argument("--title-bottom", dest="title_bottom", default="#ff9d1c")

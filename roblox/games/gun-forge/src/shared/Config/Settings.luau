@@ -10,7 +10,7 @@ return {
 
 	-- Demo gameplay loop (CollectibleService). Disable when the real genre loop is in.
 	Collectibles = {
-		Enabled = true,
+		Enabled = false, -- demo loop off: real loop = Training + Monsters
 		MaxActive = 40, -- hard cap = performance safety
 		SpawnRadius = 80,
 		RespawnSeconds = 4,
@@ -19,8 +19,8 @@ return {
 
 	Leaderboard = {
 		Enabled = true,
-		Stat = "Coins", -- key in data.stats or currency to rank by
-		StoreName = "Leaderboard_Coins_v1",
+		Stat = "Power", -- key in data.stats or currency to rank by
+		StoreName = "Leaderboard_Power_v1",
 		RefreshSeconds = 120,
 		Top = 50,
 	},

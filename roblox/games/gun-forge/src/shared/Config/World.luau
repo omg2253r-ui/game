@@ -30,13 +30,15 @@ local Presets = {
 }
 
 return {
-	Preset = "NeonCity",
+	Preset = "NeonCity", -- hub look (zones/arena override client-side via ZoneLightingController)
+	HubRadius = 70,
+	Arena = { Origin = Vector3.new(0, 0, 900), Spacing = 200, Size = 120 }, -- Arena1..3 along X
 	Presets = Presets,
 
 	-- Built only when workspace has no "Map" model (i.e. nobody built one in Studio yet).
 	-- Lets a fresh template run as a real little level. Units = studs.
 	StarterMap = {
-		Enabled = true,
+		Enabled = false, -- MapService builds the real map
 		GroundSize = Vector3.new(400, 4, 400),
 		GroundColor = Color3.fromRGB(106, 190, 96),
 		GroundMaterial = Enum.Material.Grass,

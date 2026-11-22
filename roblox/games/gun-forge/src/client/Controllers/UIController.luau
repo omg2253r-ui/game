@@ -257,6 +257,39 @@ local function renderSettings()
 end
 UIController.SettingsChanged = function(_) end -- overwritten by Main
 
+---------------------------------------------------------------- public helpers for genre controllers
+local menuFrame
+function UIController.AddMenuButton(order: number, text: string, color: Color3, windowName: string)
+	local b = UI.button(text, color, function()
+		toggle(windowName)
+	end, { LayoutOrder = order, Size = UDim2.fromOffset(88, 64), Parent = menuFrame })
+	b.Label.TextSize = 16
+	return b
+end
+UIController.MakeWindow = makeWindow
+UIController.Toggle = toggle
+UIController.Row = row
+UIController.Clear = clear
+UIController.List = list
+function UIController.Open(name: string)
+	local p = panels[name]
+	if p and not p.Visible then
+		toggle(name)
+	end
+end
+function UIController.Close(name: string)
+	local p = panels[name]
+	if p and p.Visible then
+		UI.pop(p, false)
+	end
+end
+function UIController.IsOpen(name: string): boolean
+	return panels[name] ~= nil and panels[name].Visible
+end
+function UIController.Gui(): ScreenGui
+	return gui
+end
+
 ---------------------------------------------------------------- HUD
 local function currencyPill(name: string, def, order: number, parent)
 	local pill = UI.panel({ LayoutOrder = order, Size = UDim2.fromOffset(190, 46), BackgroundColor3 = C.Bg, Parent = parent })
@@ -334,20 +367,14 @@ function UIController.Init()
 		currencyPill(e.key, e.def, i, bar)
 	end
 
-	-- side menu (left middle)
-	local menu = UI.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(96, 330), Parent = gui })
-	UI.new("UIListLayout", { Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
-	local function menuBtn(order, text, color, name)
-		local b = UI.button(text, color, function()
-			toggle(name)
-		end, { LayoutOrder = order, Size = UDim2.fromOffset(96, 72), Parent = menu })
-		b.Label.TextSize = 18
-		return b
-	end
-	menuBtn(1, "SHOP", C.Accent, "Shop")
-	local rewardsBtn = menuBtn(2, "REWARDS", C.Primary, "Rewards")
-	menuBtn(3, "QUESTS", Color3.fromRGB(90, 150, 255), "Quests")
-	menuBtn(4, "SETTINGS", C.PanelLight, "Settings")
+	-- side menu (left middle): 2-column grid so genre controllers can add buttons
+	local menu = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(186, 460), Parent = gui })
+	UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(88, 64), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
+	menuFrame = menu
+	UIController.AddMenuButton(1, "SHOP", C.Accent, "Shop")
+	local rewardsBtn = UIController.AddMenuButton(2, "REWARDS", C.Primary, "Rewards")
+	UIController.AddMenuButton(3, "QUESTS", Color3.fromRGB(90, 150, 255), "Quests")
+	UIController.AddMenuButton(99, "SETTINGS", C.PanelLight, "Settings")
 
 	buildShop()
 	local _, rb = makeWindow("Rewards", "REWARDS", C.Primary)
