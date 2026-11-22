@@ -32,6 +32,10 @@ local order = {
 	"TournamentService",
 	"GemShopService",
 	"RaidService",
+	"SeasonService", -- wraps QuestService.Progress (must be the only wrapper)
+	"AchievementService",
+	"SpinService",
+	"StoryService",
 }
 
 local services = {}

@@ -59,7 +59,7 @@ function StoryService.Init(services)
 	end)
 
 	task.spawn(function()
-		while true do
+		while true do -- lint-ok (task.wait)
 			task.wait(4)
 			for _, p in ipairs(Players:GetPlayers()) do
 				push(p)

@@ -115,7 +115,8 @@ end
 local function renderGoals()
 	W.clear(goalsBody)
 	if goalTab == "STORY" then
-		return renderStory()
+		renderStory()
+		return
 	end
 	local info = Net.invoke("AchInfo")
 	if not info then

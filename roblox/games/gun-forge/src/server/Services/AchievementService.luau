@@ -91,7 +91,7 @@ function AchievementService.Init(services)
 	end)
 
 	task.spawn(function()
-		while true do
+		while true do -- lint-ok (task.wait)
 			task.wait(10)
 			for _, p in ipairs(Players:GetPlayers()) do
 				AchievementService.Check(p)
