@@ -42,6 +42,7 @@ class Ctx:
         self.metal = R.material("GunMetal", R.hex_color("#9aa0b0"), metallic=0.8, roughness=0.35)
         self.accent = R.material("GunAccent", R.hex_color(self.acc_hex), emission=3.0, roughness=0.3)
         self.muzzle = (0, 0, 0)
+        self.core = (0, 0)
 
     def bx(self, dims, loc, mat, rot=0.0, bev=0.04):
         o = R.add_obj("cube", size=1, location=loc)
@@ -66,13 +67,32 @@ class Ctx:
             self.bx((x1 - x0, 0.04, h), ((x0 + x1) / 2, s * (half_w + 0.012), z), self.accent, bev=0)
 
     def finish_core(self, x, z):
-        """Rarity >= 4: glowing crystal core on top; rarity 5: extra fins."""
+        """Rarity ladder (cumulative): r2 muzzle ring, r3 scope/lens, r4 side fins + glowing core, r5 dorsal fin.
+        Core position is stored; the r2/r3 extras are added in extras() once the muzzle is known."""
+        self.core = (x, z)
         if self.rarity >= 4:
             c = R.add_obj("ico_sphere", subdivisions=1, radius=0.2, location=(x, 0, z))
             R.assign(c, self.accent)
             self.parts.append(c)
+            for s in (-1, 1):  # small side fins
+                f = self.bx((0.6, 0.05, 0.3), (x - 0.5, s * 0.3, z - 0.55), self.accent, bev=0)
+                f.rotation_euler = (s * R.deg(25), 0, 0)
         if self.rarity >= 5:  # glowing dorsal fin
             self.bx((0.5, 0.05, 0.3), (x - 0.1, 0, z - 0.1), self.accent, bev=0)
+
+    def extras(self, kind):
+        mx, _, mz = self.muzzle
+        cx, cz = self.core
+        if self.rarity >= 2:  # glowing muzzle ring
+            self.cy(0.34, 0.14, (mx - 0.2, 0, mz), self.accent, verts=12)
+        if self.rarity >= 3:
+            if kind == "rifle":   # rifle already has a scope: add a glowing handguard band instead
+                self.cy(0.3, 0.16, (2.3, 0, 0.5), self.accent, verts=10)
+            else:                 # top scope with glowing lens
+                sx, sz = cx + 0.9, cz + 0.05
+                self.cy(0.13, 0.9, (sx, 0, sz), self.dark, verts=8)
+                self.cy(0.17, 0.1, (sx + 0.45, 0, sz), self.accent, verts=8)
+                self.bx((0.3, 0.2, 0.2), (sx, 0, sz - 0.2), self.dark, bev=0)
 
 
 def pistol(c):
@@ -177,6 +197,7 @@ def build_one(kind, rarity, out, scale=1.0):
     R.reset_scene()
     c = Ctx(kind, rarity)
     gx, gz = BUILDERS[kind](c)
+    c.extras(kind)
     meshes = R.finalize(c.parts, join_name=f"{kind.capitalize()}_R{rarity}")
     m = meshes[0]
     m.data.transform(mathutils.Matrix.Translation((-gx, 0, -gz)))   # origin = grip centre

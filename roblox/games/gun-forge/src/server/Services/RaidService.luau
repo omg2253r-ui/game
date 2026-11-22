@@ -191,7 +191,8 @@ local function run(raid)
 			return
 		end
 		if raid.killed < raid.total then
-			return finish(raid, cleared, false)
+			finish(raid, cleared, false)
+			return
 		end
 		cleared = wave
 		if wave < Cfg.Waves then

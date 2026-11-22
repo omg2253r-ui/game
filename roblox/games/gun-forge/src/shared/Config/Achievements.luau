@@ -89,7 +89,7 @@ function A.RewardText(reward): string
 		end
 	end
 	for id, n in pairs(reward.mats or {}) do
-		table.insert(parts, ("%dx %s"):format(n, id:gsub("_", " ")))
+		table.insert(parts, ("%dx %s"):format(n, (id:gsub("_", " "))))
 	end
 	if reward.boostMin then
 		table.insert(parts, reward.boostMin .. "m boost")

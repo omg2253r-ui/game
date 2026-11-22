@@ -62,15 +62,17 @@ function Rewards.Buy(S, p: Player, id): boolean
 		end
 	end
 	local d = S.DataService.Get(p)
-	if not item or not d or d.raid.tokens < item.cost then
+	if not item or not d then
 		return false
 	end
 	if item.kind == "title" and d.raid.owned and d.raid.owned[item.id] then
-		d.raid.owned = d.raid.owned
 		S.DataService.Update(p, function(dd)
 			dd.title = item.title
 		end)
-		return true -- re-equip
+		return true -- already owned: just re-equip
+	end
+	if d.raid.tokens < item.cost then
+		return false
 	end
 	local z = Arena.ZoneOfTier(S.ZoneService.BestTier(S.PlayerService.GetPower(p)))
 	S.DataService.Update(p, function(dd)
