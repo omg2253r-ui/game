@@ -11,7 +11,7 @@ MCP server (stdio, Python, MCP SDK v1/v2) + CLI that turns prompts into PNG game
 
 ## Setup
 1. Key: https://aistudio.google.com/apikey
-2. `pip install -r roblox/tools/mcp/gemini_image/requirements.txt`
+2. Install [uv](https://docs.astral.sh/uv/) (`pip install uv`) — `.mcp.json` runs the server with `uv run --with mcp --with httpx --with pillow`, so no manual installs (or `pip install -r requirements.txt` and run it with python)
 3. Claude Code picks up `.mcp.json` at the repo root (project scope). Provide the key one of two ways:
    - local: `export GEMINI_API_KEY=...` (Windows: `setx GEMINI_API_KEY ...`) before starting `claude`
    - Claude cloud environment: Network secret → host `generativelanguage.googleapis.com`, header `x-goog-api-key`
