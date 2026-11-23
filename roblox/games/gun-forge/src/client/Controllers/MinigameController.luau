@@ -198,7 +198,7 @@ function MG.Init()
 			UIController.Row(body, i, cfg.name, cfg.desc, if cd > 0 then (cd .. "s") else "PLAY", cfg.color, cd <= 0, function()
 				UIController.Close("Minigames")
 				MG.Play(key)
-			end)
+			end, nil, "menu_games")
 		end
 	end
 	local btn = UIController.AddMenuButton(4, "GAMES", C.Forge, "Minigames")

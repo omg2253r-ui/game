@@ -33,12 +33,29 @@ local function fmtTime(s: number): string
 	return ("%dh %02dm"):format(s // 3600, (s % 3600) // 60)
 end
 
+-- notification dots on the PASS / SPIN / GOALS menu icons
+local function seasonBadge(st)
+	local n = 0
+	if st then
+		for t = 1, math.min(st.tier, Season.Tiers) do
+			if not st.claimed[tostring(t)] then
+				n += 1
+			end
+			if st.premium and not st.premiumClaimed[tostring(t)] then
+				n += 1
+			end
+		end
+	end
+	UIController.SetBadge("Season", n)
+end
+
 ---------------------------------------------------------------- season
 local function renderSeason(st)
 	W.clear(seasonBody)
 	if not st then
 		return
 	end
+	seasonBadge(st)
 	UIController.List(seasonBody)
 	local into = st.xp - st.tier * Season.XpPerTier
 	local sub = st.tier >= Season.Tiers and "Max tier reached!" or ("%d / %d XP to next tier"):format(into, Season.XpPerTier)
@@ -140,6 +157,7 @@ local function refreshSpinUi()
 		return
 	end
 	local free = spinInfo.freeIn <= 0
+	UIController.SetBadge("Spin", if free then 1 else 0)
 	spinBtn.Label.Text = free and "FREE SPIN!" or ("SPIN  -  %d Gems"):format(spinInfo.cost)
 	spinNote.Text = free and "Your daily free spin is ready!" or ("Next free spin in %s  •  paid spins left today: %d"):format(fmtTime(spinInfo.freeIn), spinInfo.paidLeft)
 end
@@ -214,11 +232,15 @@ function Progress.Init()
 	Net.listen("StoryState", function(st)
 		storyState = st
 		setTracker(st)
+		UIController.SetBadge("Achievements", if st.done and not st.finished then 1 else 0)
 		if goalsWin.Visible and goalTab == "STORY" then
 			renderGoals()
 		end
 	end)
 	task.spawn(function()
+		seasonBadge(Net.invoke("SeasonInfo"))
+		spinInfo = Net.invoke("SpinInfo")
+		refreshSpinUi()
 		local st = Net.invoke("StoryInfo")
 		if st and not storyState then
 			storyState = st

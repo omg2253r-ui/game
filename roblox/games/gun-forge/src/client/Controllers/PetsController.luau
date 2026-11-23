@@ -61,7 +61,7 @@ local function hatch(core)
 	local def = Pets.Pets[res.pet]
 	W.flash(UIController.Gui(), Guns.Rarities[def.rarity].color)
 	egg:Destroy()
-	local card = W.card(box, 0, def.rarity, "🐾", def.name, ("%s  •  +%d%% Power  +%d%% Coins"):format(Guns.Rarities[def.rarity].name, def.power * 100, def.coins * 100))
+	local card = W.card(box, 0, def.rarity, "🐾", def.name, ("%s  •  +%d%% Power  +%d%% Coins"):format(Guns.Rarities[def.rarity].name, def.power * 100, def.coins * 100), nil, nil, nil, "pet_" .. res.pet)
 	card.AnchorPoint = Vector2.new(0.5, 0)
 	card.Position = UDim2.new(0.5, 0, 0, 80)
 	card.Size = UDim2.fromOffset(240, 160)
@@ -86,7 +86,7 @@ local function renderFuse()
 		table.insert(need, "🪙 " .. W.short(core.coins))
 		UIController.Row(body, i, core.name .. "  —  " .. table.concat(need, " "), oddsText(core), "FUSE", C.Forge, ok, function()
 			hatch(core)
-		end)
+		end, nil, "mat_" .. core.id)
 	end
 end
 
@@ -113,7 +113,7 @@ local function renderMine()
 		local card = W.card(body, i, math.min(5, def.rarity + lvl), "🐾", LVL[lvl] .. def.name, ("+%d%% Power"):format(def.power * mult * 100),
 			if eq then "UNEQUIP" else "EQUIP", function()
 				Net.send("EquipPet", e.uid)
-			end, if eq then "ON" else nil)
+			end, if eq then "ON" else nil, "pet_" .. e.it.id)
 		local key = e.it.id .. ":" .. lvl
 		if lvl < 2 and (groups[key] or 0) >= Pets.CombineCount then
 			local b = UI.button("x5↑", C.Gold, function()

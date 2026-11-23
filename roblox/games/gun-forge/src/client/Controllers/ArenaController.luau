@@ -28,7 +28,7 @@ local function renderQueue()
 		UIController.Row(body, i, m.name .. " Ranked", ("First to %d kills • %d min • win +%d Coins"):format(m.killsToWin, m.minutes, Combat.Arena.WinCoins), "QUEUE", C.Danger, true, function()
 			Net.send("QueueJoin", mode)
 			UIController.Close("Arena")
-		end)
+		end, nil, "menu_pvp")
 	end
 end
 

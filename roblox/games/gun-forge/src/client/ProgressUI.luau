@@ -13,7 +13,14 @@ local P = {}
 function P.tierRow(body, tier: number, st, cfg, onClaim: (number, boolean) -> ())
 	local reached = tier <= st.tier
 	local r = UI.panel({ LayoutOrder = tier, Size = UDim2.new(1, -8, 0, 84), BackgroundColor3 = reached and C.PanelLight or C.Panel, Parent = body })
-	UI.label("TIER " .. tier, 18, { Position = UDim2.fromOffset(10, 4), Size = UDim2.fromOffset(80, 24), TextXAlignment = Enum.TextXAlignment.Left, Parent = r })
+	local tx = 10
+	if UI.hasImage("menu_pass") then
+		local ic = UI.image("menu_pass", "", C.Accent, 28)
+		ic.Position = UDim2.fromOffset(8, 2)
+		ic.Parent = r
+		tx = 40
+	end
+	UI.label("TIER " .. tier, 18, { Position = UDim2.fromOffset(tx, 4), Size = UDim2.fromOffset(80, 24), TextXAlignment = Enum.TextXAlignment.Left, Parent = r })
 	local function side(xs: number, name: string, reward, claimed: boolean, locked: boolean, premium: boolean)
 		UI.label(name .. ": " .. Achievements.RewardText(reward), 13, { Font = Theme.FontBody, TextColor3 = premium and C.Accent or C.TextDim, Position = UDim2.new(xs, 8, 0, 28), Size = UDim2.new(0.5, -16, 0, 22), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Parent = r })
 		local can = reached and not claimed and not locked

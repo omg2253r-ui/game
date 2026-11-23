@@ -21,6 +21,30 @@ local player = Players.LocalPlayer
 local UIController = { State = { currencies = {}, passes = {}, settings = {} } }
 
 local gui, panels, currencyLabels = nil, {}, {}
+local menuButtons, badgeSetters, badgeCounts = {}, {}, {}
+local menuToggle, menuToggleBadge, setMenuOpen
+
+-- window name -> { image key (Config/UiImages), fallback glyph, short title, tooltip text }
+local META = {
+	Shop = { "menu_shop", "🛒", "SHOP", "Shop - passes, gem packs and boosts" },
+	Rewards = { "menu_rewards", "🎁", "REWARDS", "Rewards - daily gift and playtime prizes" },
+	Quests = { "menu_quests", "📜", "QUESTS", "Daily quests" },
+	Minigames = { "menu_games", "🎮", "GAMES", "Training games - earn Power fast" },
+	Forge = { "menu_forge", "🔨", "FORGE", "Forge - craft guns and armor" },
+	Inventory = { "menu_bag", "🎒", "BAG", "Bag - guns, armor, materials, index" },
+	Pets = { "menu_pets", "🐾", "PETS", "Pets - hatch, fuse and equip" },
+	Arena = { "menu_pvp", "⚔", "PVP", "PvP arena and tournaments" },
+	Rebirth = { "menu_rebirth", "🔄", "REBIRTH", "Rebirth - reset for a permanent boost" },
+	Clan = { "menu_clan", "🛡", "CLAN", "Clans and clan wars" },
+	Gems = { "menu_gems", "💎", "GEMS", "Gem shop" },
+	Raid = { "menu_raid", "💀", "RAID", "Co-op raid vs a boss" },
+	Season = { "menu_pass", "🎫", "PASS", "Season pass - claim tier rewards" },
+	Achievements = { "menu_goals", "🏆", "GOALS", "Goals, titles and story" },
+	Spin = { "menu_spin", "🎡", "SPIN", "Daily spin wheel" },
+	Settings = { "menu_settings", "⚙", "SETTINGS", "Settings" },
+	Codes = { "menu_rewards", "🎟", "CODES", "Redeem codes" },
+}
+UIController.Meta = META
 local shownCoins = {}
 
 local function sorted(tbl)
@@ -68,12 +92,22 @@ local function makeWindow(name: string, title: string, accent: Color3)
 		Parent = gui,
 	})
 	UI.gradient(C.Panel, C.Bg).Parent = win
-	local header = UI.panel({ Size = UDim2.new(1, 0, 0, 56), BackgroundColor3 = accent, Parent = win }, {
+	UI.skinPanel(win, "panel_bg")
+	-- consistent layout: icon + title header, close button top-right
+	local header = UI.panel({ Name = "Header", Size = UDim2.new(1, 0, 0, 56), BackgroundColor3 = accent, Parent = win }, {
 		UI.label(title, 30, { Size = UDim2.fromScale(1, 1) }),
 	})
-	UI.button("X", C.Danger, function()
+	local meta = META[name]
+	if meta and UI.hasImage(meta[1]) then
+		local ic = UI.image(meta[1], meta[2], accent, 46)
+		ic.Position = UDim2.fromOffset(8, 5)
+		ic.ZIndex = 3
+		ic.Parent = header
+	end
+	local closeBtn = UI.button("X", C.Danger, function()
 		UI.pop(win, false)
-	end, { Size = UDim2.fromOffset(48, 48), Position = UDim2.new(1, -52, 0, 4), Parent = header })
+	end, { Name = "Close", Size = UDim2.fromOffset(48, 48), Position = UDim2.new(1, -52, 0, 4), ZIndex = 3, Parent = header })
+	closeBtn.Label.ZIndex = 4
 	local body = UI.new("ScrollingFrame", {
 		Name = "Body",
 		BackgroundTransparency = 1,
@@ -97,6 +131,9 @@ local function toggle(name: string)
 	end
 	local p = panels[name]
 	UI.pop(p, not p.Visible)
+	if UI.isTouch() and setMenuOpen then
+		setMenuOpen(false) -- phones: give the window the whole screen
+	end
 end
 
 local function buyPass(key, def)
@@ -125,8 +162,13 @@ end
 
 local shopBody
 local function buildShop()
-	local _, body = makeWindow("Shop", "SHOP", C.Accent)
+	local win, body = makeWindow("Shop", "SHOP", C.Accent)
 	shopBody = body
+	if UI.hasImage("banner_shop") then -- banner on top, cards below
+		UI.new("ImageLabel", { Name = "Banner", Image = UI.imageId("banner_shop") :: string, ScaleType = Enum.ScaleType.Crop, BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 62), Size = UDim2.new(1, -24, 0, 96), Parent = win }, { UI.corner() })
+		body.Position = UDim2.fromOffset(12, 166)
+		body.Size = UDim2.new(1, -24, 1, -178)
+	end
 	UI.new("UIGridLayout", {
 		CellSize = UDim2.fromOffset(190, 250),
 		CellPadding = UDim2.fromOffset(12, 12),
@@ -142,20 +184,20 @@ local function renderShop()
 		end
 	end
 	local order = 0
-	local function card(title, desc, priceText, color, image, glyph, owned, onBuy, tag)
+	local function card(title, desc, priceText, color, image, glyph, owned, onBuy, tag, imgKey)
 		order += 1
 		local c = UI.panel({ LayoutOrder = order, BackgroundColor3 = C.PanelLight, Parent = shopBody })
 		UI.gradient(color:Lerp(C.PanelLight, 0.55), C.Panel).Parent = c
-		local ic = UI.icon(image, glyph, color, 76)
+		local ic = if image and image ~= "" and image ~= "rbxassetid://0" then UI.icon(image, glyph, color, 84) else UI.image(imgKey, glyph, color, 84)
 		ic.AnchorPoint = Vector2.new(0.5, 0)
 		ic.Position = UDim2.new(0.5, 0, 0, 10)
 		ic.Parent = c
-		UI.label(title, 22, { Position = UDim2.fromOffset(0, 92), Parent = c })
+		UI.label(title, 22, { Position = UDim2.fromOffset(0, 98), Parent = c })
 		UI.label(desc, 14, {
 			Font = Theme.FontBody,
 			TextColor3 = C.TextDim,
-			Position = UDim2.fromOffset(8, 120),
-			Size = UDim2.new(1, -16, 0, 66),
+			Position = UDim2.fromOffset(8, 126),
+			Size = UDim2.new(1, -16, 0, 60),
 			TextYAlignment = Enum.TextYAlignment.Top,
 			Parent = c,
 		})
@@ -175,14 +217,14 @@ local function renderShop()
 		local owned = table.find(UIController.State.passes, e.key) ~= nil
 		card(e.def.name, e.def.desc, ROBUX .. " " .. e.def.price, e.def.color, e.def.icon, "⭐", owned, function()
 			buyPass(e.key, e.def)
-		end, nil)
+		end, nil, "menu_pass")
 	end
 	for _, e in ipairs(sorted(Products)) do
 		local cur = next(e.def.grant or {}) or "Coins"
 		local col = Economy.Currencies[cur] and Economy.Currencies[cur].color or C.Accent
 		card(e.def.name, "Instant delivery. Buy as many as you like!", ROBUX .. " " .. e.def.price, col, e.def.icon, cur == "Gems" and "💎" or "🪙", false, function()
 			buyProduct(e.key, e.def)
-		end, e.def.tag)
+		end, e.def.tag, if cur == "Gems" then "cur_gems" else "cur_coins")
 	end
 end
 
@@ -191,12 +233,20 @@ local function list(body)
 	UI.new("UIListLayout", { Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = body })
 end
 
-local function row(body, order, title, sub, btnText, btnColor, enabled, onClick, progress)
+-- iconKey (optional, Config/UiImages key) adds a portrait on the left; skipped until that image is uploaded.
+local function row(body, order, title, sub, btnText, btnColor, enabled, onClick, progress, iconKey)
 	local r = UI.panel({ LayoutOrder = order, Size = UDim2.new(1, -8, 0, 72), BackgroundColor3 = C.PanelLight, Parent = body })
-	UI.label(title, 20, { Position = UDim2.fromOffset(14, 8), Size = UDim2.new(1, -190, 0, 26), TextXAlignment = Enum.TextXAlignment.Left, Parent = r })
-	UI.label(sub, 15, { Font = Theme.FontBody, TextColor3 = C.TextDim, Position = UDim2.fromOffset(14, 38), Size = UDim2.new(1, -190, 0, 22), TextXAlignment = Enum.TextXAlignment.Left, Parent = r })
+	local x = 14
+	if UI.hasImage(iconKey) then
+		local ic = UI.image(iconKey, "", C.Primary, 52)
+		ic.Position = UDim2.fromOffset(8, 10)
+		ic.Parent = r
+		x = 68
+	end
+	UI.label(title, 20, { Position = UDim2.fromOffset(x, 8), Size = UDim2.new(1, -176 - x, 0, 26), TextXAlignment = Enum.TextXAlignment.Left, Parent = r })
+	UI.label(sub, 15, { Font = Theme.FontBody, TextColor3 = C.TextDim, Position = UDim2.fromOffset(x, 38), Size = UDim2.new(1, -176 - x, 0, 22), TextXAlignment = Enum.TextXAlignment.Left, Parent = r })
 	if progress then
-		local bar = UI.new("Frame", { BackgroundColor3 = C.Bg, Position = UDim2.new(0, 14, 1, -12), Size = UDim2.new(1, -200, 0, 6), Parent = r }, { UI.corner(UDim.new(1, 0)) })
+		local bar = UI.new("Frame", { BackgroundColor3 = C.Bg, Position = UDim2.new(0, x, 1, -12), Size = UDim2.new(1, -186 - x, 0, 6), Parent = r }, { UI.corner(UDim.new(1, 0)) })
 		UI.new("Frame", { BackgroundColor3 = C.Primary, Size = UDim2.fromScale(math.clamp(progress, 0, 1), 1), Parent = bar }, { UI.corner(UDim.new(1, 0)) })
 	end
 	local b = UI.button(btnText, enabled and btnColor or C.Panel, function()
@@ -218,26 +268,38 @@ end
 function UIController.RenderRewards(state)
 	clear(rewardsBody)
 	local d = state.daily
+	local function curIcon(reward)
+		return if reward and reward.Gems then "cur_gems" else "cur_coins"
+	end
+	local ready = if d.canClaim then 1 else 0
 	row(rewardsBody, 0, "Daily Reward — Day " .. (d.streak + 1), rewardText(d.rewards[d.nextIndex]), d.canClaim and "CLAIM" or "TOMORROW", C.Primary, d.canClaim, function()
 		Net.send("ClaimDaily")
-	end)
+	end, nil, "menu_rewards")
 	for i, p in ipairs(state.playtime) do
 		local label = p.claimed and "CLAIMED" or (p.ready and "CLAIM" or (p.minutes .. " MIN"))
 		row(rewardsBody, i, "Play " .. p.minutes .. " minutes", rewardText(p.reward), label, C.Accent, p.ready and not p.claimed, function()
 			Net.send("ClaimPlaytime", i)
-		end, state.sessionMinutes / p.minutes)
+		end, state.sessionMinutes / p.minutes, curIcon(p.reward))
+		if p.ready and not p.claimed then
+			ready += 1
+		end
 	end
-	panels.Rewards:SetAttribute("Ready", d.canClaim)
+	UIController.SetBadge("Rewards", ready)
 end
 
 function UIController.RenderQuests(quests)
 	clear(questsBody)
+	local claimable = 0
 	for i, q in ipairs(quests) do
 		local done = q.progress >= q.goal
+		if done and not q.claimed then
+			claimable += 1
+		end
 		row(questsBody, i, q.text, ("%d / %d  •  %s"):format(q.progress, q.goal, rewardText(q.reward)), q.claimed and "DONE" or (done and "CLAIM" or "IN PROGRESS"), C.Primary, done and not q.claimed, function()
 			Net.send("ClaimQuest", i)
-		end, q.progress / q.goal)
+		end, q.progress / q.goal, if q.reward and q.reward.Gems then "cur_gems" else "menu_quests")
 	end
+	UIController.SetBadge("Quests", claimable)
 end
 
 local settingsBody
@@ -252,19 +314,57 @@ local function renderSettings()
 			Net.send("SetSetting", key, not on)
 			renderSettings()
 			UIController.SettingsChanged(UIController.State.settings)
-		end)
+		end, nil, "menu_settings")
 	end
 end
 UIController.SettingsChanged = function(_) end -- overwritten by Main
 
 ---------------------------------------------------------------- public helpers for genre controllers
 local menuFrame
+-- Icon-first menu tile: image (or code-drawn glyph) + small label, tooltip on PC, notification dot.
 function UIController.AddMenuButton(order: number, text: string, color: Color3, windowName: string)
-	local b = UI.button(text, color, function()
+	local meta = META[windowName] or { "", "★", text, text }
+	local b = UI.button("", color:Lerp(C.Bg, 0.6), function()
 		toggle(windowName)
-	end, { LayoutOrder = order, Size = UDim2.fromOffset(76, 58), Parent = menuFrame })
-	b.Label.TextSize = 14
+	end, { LayoutOrder = order, Size = UDim2.fromOffset(84, 64), Skin = false, Parent = menuFrame })
+	b.Label.Text = text
+	b.Label.TextSize = 12
+	b.Label.Size = UDim2.new(1, 0, 0, 16)
+	b.Label.Position = UDim2.new(0, 0, 1, -18)
+	local ic = UI.image(meta[1], meta[2], color, 40)
+	ic.AnchorPoint = Vector2.new(0.5, 0)
+	ic.Position = UDim2.new(0.5, 0, 0, 3)
+	ic.Parent = b
+	UI.tooltip(b, meta[4])
+	menuButtons[windowName] = b
+	badgeSetters[windowName] = UI.badge(b)
+	if badgeCounts[windowName] then
+		badgeSetters[windowName](badgeCounts[windowName])
+	end
 	return b
+end
+-- red dot on a menu icon (n > 0 shows it; 2..9 shows the number). Also lights the MENU toggle while collapsed.
+function UIController.SetBadge(windowName: string, n: number)
+	badgeCounts[windowName] = n
+	local set = badgeSetters[windowName]
+	if set then
+		set(n)
+	end
+	if menuToggleBadge then
+		local total = 0
+		for _, v in pairs(badgeCounts) do
+			total += v
+		end
+		menuToggleBadge(total)
+	end
+end
+function UIController.GetMenuButton(windowName: string): GuiButton?
+	return menuButtons[windowName]
+end
+function UIController.SetMenuOpen(open: boolean)
+	if setMenuOpen then
+		setMenuOpen(open)
+	end
 end
 UIController.MakeWindow = makeWindow
 UIController.Toggle = toggle
@@ -293,7 +393,7 @@ end
 ---------------------------------------------------------------- HUD
 local function currencyPill(name: string, def, order: number, parent)
 	local pill = UI.panel({ LayoutOrder = order, Size = UDim2.fromOffset(190, 46), BackgroundColor3 = C.Bg, Parent = parent })
-	local ic = UI.icon(nil, name == "Gems" and "💎" or "🪙", def.color, 40)
+	local ic = UI.image(if name == "Gems" then "cur_gems" else "cur_coins", name == "Gems" and "💎" or "🪙", def.color, 40)
 	ic.Position = UDim2.fromOffset(3, 3)
 	ic.Parent = pill
 	currencyLabels[name] = UI.label("0", 24, { Position = UDim2.fromOffset(48, 0), Size = UDim2.new(1, -56, 1, 0), TextXAlignment = Enum.TextXAlignment.Left, Parent = pill })
@@ -367,14 +467,25 @@ function UIController.Init()
 		currencyPill(e.key, e.def, i, bar)
 	end
 
-	-- side menu (left middle): 2-column grid so genre controllers can add buttons
-	local menu = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 0), Size = UDim2.fromOffset(246, 470), Parent = gui })
-	UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(76, 58), CellPadding = UDim2.fromOffset(8, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
+	-- side menu (left): MENU toggle + 2-column grid of icon tiles; collapsed by default on phones
+	local holder = UI.new("Frame", { Name = "MenuHolder", BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 64), Size = UDim2.fromOffset(176, 40), Parent = gui })
+	menuToggle = UI.button("MENU", C.PanelLight, function()
+		setMenuOpen(not menuFrame.Visible)
+	end, { Size = UDim2.fromOffset(176, 40), Skin = false, Parent = holder })
+	menuToggle.Label.TextSize = 18
+	menuToggleBadge = UI.badge(menuToggle)
+	local menu = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 46), Size = UDim2.fromOffset(176, 560), Parent = holder })
+	UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(84, 64), CellPadding = UDim2.fromOffset(8, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
 	menuFrame = menu
+	setMenuOpen = function(open: boolean)
+		menu.Visible = open
+		menuToggle.Label.Text = if open then "MENU  ▲" else "MENU  ▼"
+	end
 	UIController.AddMenuButton(1, "SHOP", C.Accent, "Shop")
-	local rewardsBtn = UIController.AddMenuButton(2, "REWARDS", C.Primary, "Rewards")
+	UIController.AddMenuButton(2, "REWARDS", C.Primary, "Rewards")
 	UIController.AddMenuButton(3, "QUESTS", Color3.fromRGB(90, 150, 255), "Quests")
 	UIController.AddMenuButton(99, "SETTINGS", C.PanelLight, "Settings")
+	setMenuOpen(not UI.isTouch())
 
 	buildShop()
 	local _, rb = makeWindow("Rewards", "REWARDS", C.Primary)
@@ -386,14 +497,6 @@ function UIController.Init()
 	local _, sb = makeWindow("Settings", "SETTINGS", C.PanelLight)
 	settingsBody = sb
 	list(sb)
-
-	-- "!" badge bounce on rewards when claimable
-	local dot = UI.panel({ Size = UDim2.fromOffset(26, 26), Position = UDim2.new(1, -18, 0, -8), BackgroundColor3 = C.Danger, Visible = false, Parent = rewardsBtn }, {
-		UI.label("!", 18, { Size = UDim2.fromScale(1, 1) }),
-	})
-	panels.Rewards:GetAttributeChangedSignal("Ready"):Connect(function()
-		dot.Visible = panels.Rewards:GetAttribute("Ready") == true
-	end)
 
 	toastHolder = UI.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 70), Size = UDim2.fromOffset(360, 300), Parent = gui })
 	UI.new("UIListLayout", { Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center, Parent = toastHolder })

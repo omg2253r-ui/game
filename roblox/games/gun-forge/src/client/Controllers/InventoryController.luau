@@ -46,7 +46,7 @@ local function renderGear(kind: string)
 				if not eq then
 					Net.send("Equip", e.uid)
 				end
-			end, if eq then "ON" else nil)
+			end, if eq then "ON" else nil, (if kind == "gun" then "gun_" else "armor_") .. it.id)
 		if not eq then
 			local s = UI.button("♻", C.Danger, function()
 				Net.send("Salvage", e.uid)
@@ -66,7 +66,7 @@ local function renderMats()
 		local def = Materials[id]
 		if def then
 			i += 1
-			W.card(body, def.rarity * 100 + i, def.rarity, def.glyph, def.name, "x" .. W.short(n))
+			W.card(body, def.rarity * 100 + i, def.rarity, def.glyph, def.name, "x" .. W.short(n), nil, nil, nil, "mat_" .. id)
 		end
 	end
 end
@@ -135,7 +135,7 @@ local function rebirthWindow()
 				if Net.invoke("Rebirth") then
 					UIController.Close("Rebirth")
 				end
-			end, info.power / info.cost)
+			end, info.power / info.cost, "menu_rebirth")
 		UIController.Row(rb, 2, "Requirement", ("%s / %s Power"):format(W.short(info.power), W.short(info.cost)), "", C.Panel, false, function() end)
 	end
 	Inv.DrawRebirth = draw
@@ -162,7 +162,7 @@ local function gemWindow()
 	for i, it in ipairs(GemShop) do
 		UIController.Row(gb, i, it.name, it.desc, ("💎 %d"):format(it.gems), Color3.fromRGB(181, 108, 255), true, function()
 			Net.invoke("GemBuy", it.key)
-		end)
+		end, nil, "cur_gems")
 	end
 end
 

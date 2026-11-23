@@ -57,76 +57,92 @@ function P.ball(parent: Instance, name: string, d: number, cf: CFrame, color: Co
 	return p
 end
 
+-- ===== Shared helpers for MapZones / MapHub =====
+local CollectionService = game:GetService("CollectionService")
+
+-- beam-shaped part between two points
+function P.beam(parent: Instance, name: string, a: Vector3, b: Vector3, th: number, color: Color3, mat: Enum.Material?, decor: boolean?)
+	local len = math.max((b - a).Magnitude, 0.05)
+	return P.part(parent, name, Vector3.new(th, th, len), CFrame.lookAt((a + b) / 2, b), color, mat, decor)
+end
+
+-- client-animated decor (ZoneLightingController reads the tag + attributes)
+function P.anim(inst: Instance, kind: string, attrs: { [string]: any }?)
+	inst:SetAttribute("AnimKind", kind)
+	for k, v in pairs(attrs or {}) do
+		inst:SetAttribute(k, v)
+	end
+	CollectionService:AddTag(inst, "MapAnim")
+end
+function P.spin(part: BasePart, pivot: Vector3, axis: Vector3, speed: number)
+	P.anim(part, "Spin", { AnimPivot = pivot, AnimAxis = axis, AnimSpeed = speed })
+end
+function P.pulse(part: BasePart, lo: number, hi: number, speed: number, ph: number?)
+	P.anim(part, "Pulse", { AnimLo = lo, AnimHi = hi, AnimSpeed = speed, AnimPh = ph or 0 })
+end
+
+function P.light(parent: Instance, color: Color3, range: number, brightness: number)
+	local l = Instance.new("PointLight")
+	l.Color, l.Range, l.Brightness, l.Shadows = color, range, brightness, false
+	l.Parent = parent
+	return l
+end
+
+-- ambient particle volume: invisible anchored box with a ParticleEmitter (Decor=true -> Low Graphics disables it)
+function P.emitter(parent: Instance, name: string, cf: CFrame, size: Vector3, cfg: { [string]: any })
+	local box = P.part(parent, name, size, cf, Color3.new(1, 1, 1), nil, true)
+	box.Transparency = 1
+	local e = Instance.new("ParticleEmitter")
+	e.Shape = Enum.ParticleEmitterShape.Box
+	e.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+	e.Texture = cfg.texture or "rbxasset://textures/particles/sparkles_main.dds"
+	e.Rate = math.min(cfg.rate or 10, 15)
+	e.Lifetime = cfg.life or NumberRange.new(4, 6)
+	e.Speed = cfg.speed or NumberRange.new(1, 3)
+	e.Size = cfg.size or NumberSequence.new(1)
+	e.Transparency = cfg.transp or NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.2, 0.2), NumberSequenceKeypoint.new(0.8, 0.2), NumberSequenceKeypoint.new(1, 1) })
+	e.Color = cfg.color or ColorSequence.new(Color3.new(1, 1, 1))
+	e.LightEmission = cfg.glow or 0
+	e.LightInfluence = cfg.influence or 0
+	e.Acceleration = cfg.accel or Vector3.zero
+	e.EmissionDirection = cfg.dir or Enum.NormalId.Top
+	e.SpreadAngle = cfg.spread or Vector2.new(30, 30)
+	e.Rotation = NumberRange.new(0, 360)
+	e.RotSpeed = cfg.rot or NumberRange.new(-20, 20)
+	e.Drag = cfg.drag or 0
+	e.LockedToPart = false
+	e:SetAttribute("Decor", true)
+	e.Parent = box
+	return box, e
+end
+
+-- vertical-ish ring of beam segments in a plane. normal = "Z" (XY plane), "X" (YZ plane) or "Y" (XZ plane)
+function P.ring(parent: Instance, name: string, center: Vector3, radius: number, segs: number, normal: string, th: number, colors: { Color3 }, mat: Enum.Material?, speed: number?)
+	local out = {}
+	local function pt(a: number): Vector3
+		local c, s = math.cos(a) * radius, math.sin(a) * radius
+		if normal == "Z" then
+			return center + Vector3.new(c, s, 0)
+		elseif normal == "X" then
+			return center + Vector3.new(0, c, s)
+		end
+		return center + Vector3.new(c, 0, s)
+	end
+	local axis = normal == "Z" and Vector3.zAxis or (normal == "X" and Vector3.xAxis or Vector3.yAxis)
+	for i = 1, segs do
+		local p = P.beam(parent, name, pt((i - 1) / segs * math.pi * 2), pt(i / segs * math.pi * 2), th, colors[(i - 1) % #colors + 1], mat or Enum.Material.Neon, true)
+		if speed then
+			P.spin(p, center, axis, speed)
+		end
+		out[i] = p
+	end
+	return out
+end
+
 local NEON, ROCK = Enum.Material.Neon, Enum.Material.Slate
 local function up(y: number): Vector3
 	return Vector3.new(0, y, 0)
 end
-
--- Landmark builders: (parent, pos on ground, cframe facing the hub, color). All decor, <= 60 parts.
-local L = {}
-
-function L.meadow(m, pos, base, color)
-	for i = 1, 7 do
-		local w = 16 - i * 1.8
-		P.part(m, "Spire", Vector3.new(w, 14, w), CFrame.new(pos + up(i * 13 - 6)) * CFrame.Angles(0, i * 0.4, 0), i % 2 == 0 and P.Cyan or Color3.fromRGB(140, 235, 255), i % 2 == 0 and NEON or Enum.Material.Glass, true)
-	end
-	for i = 1, 12 do
-		local a = i / 12 * math.pi * 2
-		local h = 14 + (i % 4) * 7
-		P.part(m, "Shard", Vector3.new(4, h, 4), CFrame.new(pos + Vector3.new(math.cos(a) * 20, h / 2, math.sin(a) * 20)) * CFrame.Angles(math.sin(a) * 0.3, a, math.cos(a) * 0.3), i % 3 == 0 and P.Pink or P.Cyan, NEON, true)
-	end
-	P.part(m, "Tip", Vector3.new(6, 12, 6), CFrame.new(pos + up(100)) * CFrame.Angles(0.8, 0.8, 0), P.Gold, NEON, true)
-end
-
-function L.desert(m, pos, base, color)
-	local rng = Random.new(7)
-	for i = 1, 10 do
-		local s = 22 - i * 1.4
-		P.part(m, "Scrap", Vector3.new(s, 9, s * rng:NextNumber(0.7, 1)), CFrame.new(pos + Vector3.new(rng:NextNumber(-2, 2), i * 8.5, rng:NextNumber(-2, 2))) * CFrame.Angles(0, rng:NextNumber(0, 3), 0), i % 2 == 0 and Color3.fromRGB(150, 95, 60) or Color3.fromRGB(110, 110, 120), i % 2 == 0 and Enum.Material.CorrodedMetal or Enum.Material.Metal, true)
-	end
-	P.part(m, "Antenna", Vector3.new(1.4, 40, 1.4), CFrame.new(pos + up(105)), Color3.fromRGB(90, 90, 100), Enum.Material.Metal, true)
-	P.part(m, "Beacon", Vector3.new(6, 6, 6), CFrame.new(pos + up(128)), P.Gold, NEON, true)
-	for i = 1, 4 do
-		local a = i * math.pi / 2
-		P.cyl(m, "Gear", 20, 3, CFrame.new(pos + Vector3.new(math.cos(a) * 20, 14 + i * 6, math.sin(a) * 20)) * CFrame.Angles(a, 0, 0), Color3.fromRGB(170, 130, 80), Enum.Material.Metal, true)
-	end
-end
-
-function L.frost(m, pos, base, color)
-	for i = 1, 12 do
-		local a = i / 12 * math.pi * 2
-		local r = i % 3 == 0 and 0 or 12 + (i % 4) * 5
-		local h = 30 + (i * 13 % 50)
-		P.part(m, "Ice", Vector3.new(7, h, 7), CFrame.new(pos + Vector3.new(math.cos(a) * r, h / 2 - 2, math.sin(a) * r)) * CFrame.Angles(math.sin(a) * 0.25, a, math.cos(a) * 0.25), i % 2 == 0 and Color3.fromRGB(170, 230, 255) or Color3.fromRGB(230, 250, 255), Enum.Material.Ice, true)
-	end
-	P.part(m, "Core", Vector3.new(10, 70, 10), CFrame.new(pos + up(40)) * CFrame.Angles(0, 0.7, 0), P.Cyan, NEON, true).Transparency = 0.35
-end
-
-function L.magma(m, pos, base, color)
-	for i = 1, 8 do
-		local d = 78 - i * 8
-		P.cyl(m, "Cone", d, 10, CFrame.new(pos + up(i * 10 - 5)), i % 2 == 0 and Color3.fromRGB(70, 45, 40) or Color3.fromRGB(50, 35, 35), ROCK, true)
-	end
-	P.cyl(m, "Lava", 18, 4, CFrame.new(pos + up(82)), Color3.fromRGB(255, 120, 30), NEON, true)
-	for i = 1, 6 do
-		local a = i / 6 * math.pi * 2
-		P.part(m, "Stream", Vector3.new(3, 60, 3), CFrame.new(pos + Vector3.new(math.cos(a) * 22, 50, math.sin(a) * 22)) * CFrame.Angles(math.sin(a) * 0.45, 0, -math.cos(a) * 0.45), Color3.fromRGB(255, 90, 20), NEON, true)
-		P.part(m, "Ember", Vector3.new(4, 4, 4), CFrame.new(pos + Vector3.new(math.cos(a) * 10, 95 + (i % 3) * 8, math.sin(a) * 10)), P.Gold, NEON, true).Shape = Enum.PartType.Ball
-	end
-end
-
-function L.void(m, pos, base, color)
-	local c = CFrame.new(pos) * (base - base.Position)
-	for i = 1, 24 do
-		local a = i / 24 * math.pi * 2
-		P.part(m, "Ring", Vector3.new(8, 9, 7), c * CFrame.new(math.cos(a) * 40, 62 + math.sin(a) * 40, 0) * CFrame.Angles(0, 0, a), i % 2 == 0 and P.Pink or P.Cyan, NEON, true)
-	end
-	P.part(m, "Portal", Vector3.new(1, 66, 66), c * CFrame.new(0, 62, 0) * CFrame.Angles(0, math.pi / 2, 0), Color3.fromRGB(90, 40, 160), Enum.Material.ForceField, true).Shape = Enum.PartType.Cylinder
-	for s = -1, 1, 2 do
-		P.part(m, "Pylon", Vector3.new(8, 24, 8), c * CFrame.new(s * 40, 12, 0), P.Dark, Enum.Material.Metal, true)
-	end
-end
-
 
 -- ===== Roadside scenery (OUTSIDE the lane walls). All decor. GY = outland ground height. =====
 P.GY = -1
@@ -272,5 +288,4 @@ function B.void(m, x, z, rng)
 end
 P.Backdrop = B
 
-P.Landmarks = L
 return P

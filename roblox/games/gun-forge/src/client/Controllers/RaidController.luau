@@ -37,7 +37,7 @@ local function renderLobby()
 				if Net.invoke("RaidStart") then
 					UIController.Close("Raid")
 				end
-			end)
+			end, nil, "menu_raid")
 		end
 		return
 	end
@@ -67,7 +67,7 @@ local function renderShop()
 	if not info then
 		return
 	end
-	UIController.Row(body, 0, ("Raid Tokens: %d"):format(info.tokens), "Earn tokens by clearing raid waves", "", C.Panel, false, function() end)
+	UIController.Row(body, 0, ("Raid Tokens: %d"):format(info.tokens), "Earn tokens by clearing raid waves", "", C.Panel, false, function() end, nil, "cur_raid")
 	for i, it in ipairs(info.shop) do
 		local owned = it.kind == "title" and info.owned[it.id]
 		local equipped = owned and info.title == it.title
@@ -75,7 +75,7 @@ local function renderShop()
 			not equipped and (owned or info.tokens >= it.cost), function()
 				Net.invoke("RaidBuy", it.id)
 				Raid.Render()
-			end)
+			end, nil, "cur_raid")
 	end
 end
 

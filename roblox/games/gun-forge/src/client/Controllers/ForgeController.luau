@@ -67,7 +67,7 @@ local function reveal(box: Frame, close: () -> (), res)
 	local r = Guns.Rarities[item.rarity]
 	W.flash(UIController.Gui(), r.color)
 	local name = if item.kind == "gun" then Guns.Types[item.id].name else Guns.Armor[item.id].name
-	local card = W.card(box, 0, item.rarity, GLYPH[item.id] or "★", ("%s %s T%d"):format(r.name, name, item.tier), statText(item))
+	local card = W.card(box, 0, item.rarity, GLYPH[item.id] or "★", ("%s %s T%d"):format(r.name, name, item.tier), statText(item), nil, nil, nil, (if item.kind == "gun" then "gun_" else "armor_") .. item.id)
 	card.AnchorPoint = Vector2.new(0.5, 0)
 	card.Position = UDim2.new(0.5, 0, 0, 70)
 	card.Size = UDim2.fromOffset(220, 150)
@@ -166,7 +166,7 @@ local function renderEnchant()
 				elseif r and r.err then
 					UIController.Toast(r.err, "error")
 				end
-			end, progress)
+			end, progress, "gun_" .. it.id)
 	end
 end
 
@@ -200,7 +200,7 @@ local function render()
 		local text, ok = matText(r)
 		UIController.Row(body, i, ("%s %s  (Tier %d)"):format(GLYPH[r.item] or "", name, r.tier), text, "CRAFT", C.Forge, ok, function()
 			craft(r)
-		end)
+		end, nil, (if kind == "gun" then "gun_" else "armor_") .. r.item)
 	end
 end
 Forge.Render = render

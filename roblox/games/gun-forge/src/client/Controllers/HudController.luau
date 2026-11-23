@@ -105,6 +105,84 @@ local function nextZoneHint()
 	hintLabel.Text = "All zones unlocked — try Rebirth!"
 end
 
+-- First-time hints, one at a time: TRAIN -> x2 pulse -> Adventure gate -> Forge. Session-only; skipped for
+-- returning players (already strong). Each step dismisses itself when the player does the thing.
+function Hud.StartTutorial()
+	local player = Players.LocalPlayer
+	task.spawn(function()
+		task.wait(4)
+		if State.Power() > 300 or (State.Inv.rebirths or 0) > 0 then
+			return
+		end
+		local dismiss: (() -> ())? = nil
+		local function show(target: GuiObject, text: string, side: string?)
+			if dismiss then
+				dismiss()
+			end
+			dismiss = UI.hint(target, text, side)
+		end
+		local function hide()
+			if dismiss then
+				dismiss()
+				dismiss = nil
+			end
+		end
+		-- 1. TRAIN
+		show(trainBtn, "Training is ON: stay near monsters and your Power grows!", "up")
+		task.wait(8)
+		hide()
+		-- 2. x2 pulse (waits up to 3 min for the first one)
+		local waited = 0
+		while not pulseBtn.Visible and waited < 180 do
+			task.wait(1)
+			waited += 1
+		end
+		if pulseBtn.Visible then
+			show(pulseBtn, "Tap x2 for double Power!", "down")
+			while pulseBtn.Visible do
+				task.wait(0.3)
+			end
+			hide()
+		end
+		-- 3. Adventure gate
+		local bar = UI.panel({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 100), Size = UDim2.fromOffset(420, 44), BackgroundColor3 = C.Gold, ZIndex = 15, Parent = UIController.Gui() }, {
+			UI.label("➡  Walk through the glowing ADVENTURE gate!", 18, { Size = UDim2.fromScale(1, 1), ZIndex = 16 }),
+		})
+		local bob = TweenService:Create(bar, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Position = UDim2.new(0.5, 0, 0, 108) })
+		bob:Play()
+		while true do
+			local z = player:GetAttribute("Zone")
+			if z ~= nil and z ~= "hub" then
+				break
+			end
+			task.wait(1)
+		end
+		bob:Cancel()
+		bar:Destroy()
+		-- 4. Forge: once you hold any material
+		local function hasMats(): boolean
+			for _, n in pairs(State.Inv.materials) do
+				if n > 0 then
+					return true
+				end
+			end
+			return false
+		end
+		while not hasMats() do
+			task.wait(2)
+		end
+		UIController.SetMenuOpen(true)
+		local fb = UIController.GetMenuButton("Forge")
+		if fb then
+			show(fb, "You got materials! Open the FORGE to craft a better gun.", "right")
+			while not UIController.IsOpen("Forge") do
+				task.wait(0.5)
+			end
+			hide()
+		end
+	end)
+end
+
 function Hud.Init()
 	local gui = UIController.Gui()
 	-- Power panel (top centre)
@@ -126,9 +204,12 @@ function Hud.Init()
 		Vfx.Sound(Sounds.Ui)
 		pulseBtn.Visible = false
 		W.flash(gui, C.Forge)
-	end, { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(130, 130), Visible = false, ZIndex = 10, Parent = gui })
+	end, { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(130, 130), Visible = false, ZIndex = 10, Skin = false, Parent = gui })
 	pulseBtn.Label.TextSize = 48
 	UI.corner(UDim.new(1, 0)).Parent = pulseBtn
+	if UI.skinPanel(pulseBtn, "badge_x2") then -- uploaded art replaces the code-drawn disc
+		pulseBtn.Label.Text = ""
+	end
 
 	banner = UI.label("", 30, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104), Size = UDim2.fromOffset(900, 40), TextColor3 = C.Gold, Visible = false, Parent = gui })
 
@@ -325,6 +406,36 @@ function Hud.Init()
 			end
 		end
 	end)
+
+	-- stage banner: art splash when you enter a new stage (only once banner_stageN is uploaded)
+	local stageBanner = UI.new("ImageLabel", { BackgroundTransparency = 1, ImageTransparency = 1, ScaleType = Enum.ScaleType.Crop, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 100), Size = UDim2.fromOffset(420, 76), Visible = false, ZIndex = 12, Parent = gui }, { UI.corner() })
+	local stageBannerText = UI.label("", 30, { Size = UDim2.fromScale(1, 1), ZIndex = 13, TextTransparency = 1, Parent = stageBanner })
+	local lastZone = nil
+	task.spawn(function()
+		while true do -- lint-ok (task.wait)
+			task.wait(0.5)
+			local zid = player:GetAttribute("Zone")
+			if zid ~= lastZone then
+				lastZone = zid
+				for _, z in ipairs(Zones) do
+					local img = UI.imageId("banner_stage" .. z.stage)
+					if z.id == zid and img then
+						stageBanner.Image = img
+						stageBannerText.Text = ("STAGE %d  %s"):format(z.stage, z.name)
+						stageBanner.Visible = true
+						TweenService:Create(stageBanner, TweenInfo.new(0.4), { ImageTransparency = 0 }):Play()
+						TweenService:Create(stageBannerText, TweenInfo.new(0.4), { TextTransparency = 0 }):Play()
+						task.delay(3.2, function()
+							TweenService:Create(stageBanner, TweenInfo.new(0.6), { ImageTransparency = 1 }):Play()
+							TweenService:Create(stageBannerText, TweenInfo.new(0.6), { TextTransparency = 1 }):Play()
+						end)
+					end
+				end
+			end
+		end
+	end)
+
+	Hud.StartTutorial()
 
 	-- power ticker
 	local shown = 0
