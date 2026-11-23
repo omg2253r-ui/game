@@ -3,7 +3,8 @@
 --           ClanBoard, CodesBoard, SpawnLocation, BossPit, Portal_<zoneId>}
 --   Map.Zones.<id>{Ground, SpawnArea, Gate(PowerReq, ZoneId), ReturnPortal_<id>, Landmark, Scenery}   Map.Arena.Arena1..3{SpawnA, SpawnB}
 -- Layout: hub at origin, ONE straight road towards -Z (48 wide), stage i = Zones[i].center/size, 30-stud bridges between stages.
--- Perf: all Anchored; decor has CanCollide/CanQuery/CanTouch/CastShadow off. ~2500 parts total (budget 3000).
+-- Stage set-pieces live in MapZones (Terrain + decor + emitters), hub plaza dressing in MapHub. Perf: all Anchored; decor has
+-- CanCollide/CanQuery/CanTouch/CastShadow off; part count is printed at init (budget 4000).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Zones = require(ReplicatedStorage.Shared.Config.Zones)
@@ -14,7 +15,6 @@ local MapZones = require(script.Parent.MapZones)
 local MapHub = require(script.Parent.MapHub)
 
 local part, cyl = P.part, P.cyl
-local GY = P.GY
 local NEON = Enum.Material.Neon
 local MapService = {}
 

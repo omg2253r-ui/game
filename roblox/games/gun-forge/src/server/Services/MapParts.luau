@@ -140,9 +140,6 @@ function P.ring(parent: Instance, name: string, center: Vector3, radius: number,
 end
 
 local NEON, ROCK = Enum.Material.Neon, Enum.Material.Slate
-local function up(y: number): Vector3
-	return Vector3.new(0, y, 0)
-end
 
 -- ===== Roadside scenery (OUTSIDE the lane walls). All decor. GY = outland ground height. =====
 P.GY = -1
