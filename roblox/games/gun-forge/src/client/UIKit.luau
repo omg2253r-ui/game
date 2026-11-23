@@ -233,7 +233,7 @@ function UI.tooltip(obj: GuiObject, text: string)
 		if conn then
 			conn:Disconnect()
 		end
-		conn = game:GetService("RunService").RenderStepped:Connect(function()
+		conn = game:GetService("RunService").RenderStepped:Connect(function() -- lint-ok (only while hovering)
 			local m = UserInputService:GetMouseLocation() - inset
 			local k = if sc then sc.Scale else 1
 			tip.Position = UDim2.fromOffset(m.X / k + 16, m.Y / k + 18)

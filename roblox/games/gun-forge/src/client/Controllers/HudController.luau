@@ -150,7 +150,7 @@ function Hud.StartTutorial()
 		})
 		local bob = TweenService:Create(bar, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Position = UDim2.new(0.5, 0, 0, 108) })
 		bob:Play()
-		while true do
+		while true do -- lint-ok (task.wait)
 			local z = player:GetAttribute("Zone")
 			if z ~= nil and z ~= "hub" then
 				break

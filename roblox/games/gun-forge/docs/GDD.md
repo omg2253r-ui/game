@@ -73,3 +73,10 @@ New for this game:
 
 ## 9. Success metrics
 D1 ≥ 25 %, avg session ≥ 20 min, payer conversion ≥ 2 %, PvP queue time < 30 s.
+
+## UI flow (first 60 s, icon-first)
+- 0-5 s: loading art + title splash; currency pills (coin/gem icons) top-left, MENU tile grid (2 columns, collapsed on phones).
+- 5-12 s: hint bubble on TRAINING "stay near monsters, Power grows"; Power counter animates up.
+- ~10-30 s: x2 pulse pops (badge art) with a pulsing ring "Tap x2 for double Power!"
+- then: gold banner "Walk through the glowing ADVENTURE gate"; entering a stage shows its stage banner art.
+- first materials: MENU opens and an arrow points at the FORGE tile; red dots mark Rewards / Quests / Spin / Pass when something is claimable. Every window: icon header, icon-chip tabs, X top-right, one big primary button; purchases <= 2 taps.

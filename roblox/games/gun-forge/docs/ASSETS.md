@@ -168,3 +168,8 @@
 | art/store/icon_512.png | Game icon A | same run |
 | art/store/v2/thumbnail_1920x1080.png | Thumbnail B (A/B test): "AFK TRAIN • CRAFT GUNS • PVP", badge x2 TRAINING | cyan rays, magenta glow |
 | art/store/v2/icon_512.png | Game icon B | same run |
+
+## UI images (ui-designer, Gemini)
+- Registry: `src/shared/Config/UiImages.luau` (key -> id + file + optional 9-slice). id `rbxassetid://0` = not uploaded -> code-drawn fallback (UIKit `UI.image/UI.skin/UI.skinPanel`).
+- Spec: `art/ui/gemini_spec.json` (80 items, one shared style): menu_* (16), cur_* (4), gun_* (6), armor_* (3), mat_* (15), pet_* (18), card_frame_1..5, panel_bg, btn_green/gold/red/blue, badge_x2, banner_stage1..5 (16:9), loading (16:9), banner_shop (21:9).
+- Generate: `python roblox/tools/mcp/gemini_image/server.py batch roblox/games/gun-forge/art/ui/gemini_spec.json`; upload: `roblox/tools/upload_assets.py` (README_TH.md). Status: spec ready, images NOT generated yet (Gemini key missing/invalid in the build environment).

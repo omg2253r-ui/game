@@ -501,6 +501,16 @@ function UIController.Init()
 	toastHolder = UI.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 70), Size = UDim2.fromOffset(360, 300), Parent = gui })
 	UI.new("UIListLayout", { Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center, Parent = toastHolder })
 
+	-- loading/title art (only once art/ui/loading.png is uploaded)
+	if UI.hasImage("loading") then
+		local bg = UI.new("ImageLabel", { Image = UI.imageId("loading") :: string, ScaleType = Enum.ScaleType.Crop, BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 0, Parent = gui })
+		task.delay(2.5, function()
+			TweenService:Create(bg, TweenInfo.new(0.7), { ImageTransparency = 1 }):Play()
+			task.wait(0.8)
+			bg:Destroy()
+		end)
+	end
+
 	-- title splash
 	local splash = UI.label(Settings.GameName, 64, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.3), Size = UDim2.fromOffset(900, 90), TextColor3 = C.Accent, Parent = gui })
 	task.delay(2.5, function()

@@ -4,11 +4,10 @@
 -- model's axis); Slide / Magazine / Trigger are moved by swapping their WeldConstraint for a client Weld.
 --   Update(dt, s)  per frame: s = { ads = 0..1, speed = studs/s, reload = 0..1 | nil, bloom = 0..1 }
 --   Kick(strength)  recoil kickback + slide cycle on a shot     Equip()  raise animation
---   OnReloadEvent  callbacks (mag out / mag in / bolt) fire once per reload phase
+--   PollPhase()  returns 1 (mag out) / 2 (mag in) / 3 (bolt) once each time a reload phase is reached
 local Players = game:GetService("Players")
 
 local WeaponAnim = {}
-WeaponAnim.OnReloadPhase = nil :: ((phase: string) -> ())?
 
 local player = Players.LocalPlayer
 
@@ -172,8 +171,6 @@ function WeaponAnim.Update(dt: number, s: { ads: number, speed: number, reload: 
 		elseif r > 0.88 and phase < 3 then
 			phase = 3
 			slide = 1
-		else
-			-- no new phase
 		end
 	else
 		phase = 0

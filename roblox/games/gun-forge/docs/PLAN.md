@@ -67,3 +67,4 @@ Gate rule: a phase starts only after the previous gate is ticked by rbx-director
 - ui-designer: Theme neon restyle (+Energy/Forge/Gold/Rarity), 19 new icons, 5 rarity frames, tracer+muzzle VFX generated; ids pending upload (ASSETS.md).
 - G1 approved by user → Phase 2 + M1 started.
 - world-builder: linear lane rebuild: Hub arch "ADVENTURE ->" + Portal_<zoneId> x5 + Hub.TrainingDummies/Dummy1..6; Zones.<id>{Ground,SpawnArea,Gate,ReturnPortal_<id>,SideWalls,Bridge,Scenery,Landmark}; presets DesertDusk/FrostHaze/MagmaGlow/VoidNeon (+DepthOfField/SunRays all); ZoneLightingController tweens all props ~1s.
+- Weapons realism: fire modes (semi/burst/auto, B), ADS + crosshair/scope, recoil springs/bloom, server head-crit (aim offset), miss decals/shells/smoke, WeaponAnim/WeaponFx, sound layers, per-type rebalance. Files: Config/Guns+Sounds, GunService, GunController, VfxController, WeaponAnim, WeaponFx.

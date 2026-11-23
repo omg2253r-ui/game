@@ -47,3 +47,13 @@
 - มอน HP/ดาเมจ/ของดรอป → `Config/Monsters.luau` · ความยากรวม → `Combat.luau MonsterDamageScale`
 - ปืน/เกราะ/แรร์ → `Config/Guns.luau` · สูตรตี → `Recipes.luau` · สัตว์เลี้ยง/อัตราออก → `Pets.luau`
 - PvP / ทัวร์ / แคลน / บอสโลก → `Config/Combat.luau` · โค้ดแลกของ → `Codes.luau`
+
+## UI แบบรูปภาพ (Gemini + อัปโหลด)
+UI ใช้รูปจาก `src/shared/Config/UiImages.luau` ถ้า id ยังเป็น `rbxassetid://0` จะใช้ UI วาดด้วยโค้ดแบบเดิมอัตโนมัติ (เกมเล่นได้เสมอ)
+1. **ใส่คีย์ Gemini** (ครั้งเดียว): `export GEMINI_API_KEY=...` (Windows: `setx GEMINI_API_KEY ...`) → ตรวจ `python roblox/tools/mcp/gemini_image/server.py models`
+2. **สร้างรูป 80 ใบ** (ไอคอนเมนู/สกุลเงิน/ปืน/เกราะ/วัตถุดิบ/สัตว์เลี้ยง/กรอบการ์ด/ปุ่ม/แบนเนอร์/โหลดดิ้ง): `python roblox/tools/mcp/gemini_image/server.py batch roblox/games/gun-forge/art/ui/gemini_spec.json` → ได้ไฟล์ใน `art/ui/` (รันซ้ำได้ ข้ามไฟล์ที่มีแล้ว; ไม่ชอบใบไหนลบไฟล์นั้นแล้วรันใหม่)
+3. **สร้าง API key ของ Roblox:** Creator Dashboard → Open Cloud → API Keys → สิทธิ์ *Assets: Read + Write* → `export ROBLOX_API_KEY=...`
+4. **ทดลอง:** `python roblox/tools/upload_assets.py --game roblox/games/gun-forge --dry-run`
+5. **อัปโหลดจริง:** `python roblox/tools/upload_assets.py --game roblox/games/gun-forge --user-id <UserId ของคุณ>` (เกมของกลุ่มใช้ `--group-id`; ตัวเลือก `--only menu_shop,cur_gems`, `--force`, `--type Decal`)
+   สคริปต์จะเขียน id ลง `UiImages.luau` เอง → Sync ด้วย Rojo แล้วกด Play
+- ปัญหาที่พบบ่อย: 401/403 = key ไม่มีสิทธิ์ Assets หรือ IP ไม่ได้รับอนุญาต · รูปที่ถูกตรวจสอบเนื้อหา (moderation) อาจใช้เวลาสักครู่ · ไอคอนที่ใช้ `--type Image` ได้ id ที่ใช้กับ ImageLabel โดยตรง
