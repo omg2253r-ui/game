@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "gemini_image": {
+      "command": "python",
+      "args": ["roblox/tools/mcp/gemini_image/server.py"],
+      "env": { "GEMINI_API_KEY": "${GEMINI_API_KEY:-}" }
+    }
+  }
+}
