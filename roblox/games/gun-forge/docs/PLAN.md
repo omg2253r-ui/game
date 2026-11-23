@@ -74,3 +74,4 @@ Gate rule: a phase starts only after the previous gate is ticked by rbx-director
 - G1 approved by user → Phase 2 + M1 started.
 - world-builder: linear lane rebuild: Hub arch "ADVENTURE ->" + Portal_<zoneId> x5 + Hub.TrainingDummies/Dummy1..6; Zones.<id>{Ground,SpawnArea,Gate,ReturnPortal_<id>,SideWalls,Bridge,Scenery,Landmark}; presets DesertDusk/FrostHaze/MagmaGlow/VoidNeon (+DepthOfField/SunRays all); ZoneLightingController tweens all props ~1s.
 - Weapons realism: fire modes (semi/burst/auto, B), ADS + crosshair/scope, recoil springs/bloom, server head-crit (aim offset), miss decals/shells/smoke, WeaponAnim/WeaponFx, sound layers, per-type rebalance. Files: Config/Guns+Sounds, GunService, GunController, VfxController, WeaponAnim, WeaponFx.
+- 2026-11-23 3d-artist: models v2 pass (guns 30x realistic multi-part, 20 monsters, 18 pets with rigs+clips, props rebaked); see ASSETS.md 'Models v2'.
