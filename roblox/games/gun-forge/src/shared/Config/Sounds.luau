@@ -10,6 +10,15 @@ return {
 		blaster = { id = gun, volume = 0.4, pitch = 0.9 },
 		railgun = { id = gun, volume = 0.6, pitch = 0.5 },
 	},
+	-- weapon layers (mixed with the shot): mechanical bolt/slide click, magazine out/in, distant tail, switch, charge
+	Mech = {
+		Bolt = { id = "rbxasset://sounds/clickfast.wav", volume = 0.35, pitch = 0.6 },
+		MagOut = { id = "rbxasset://sounds/collide.wav", volume = 0.25, pitch = 2.2 },
+		MagIn = { id = "rbxasset://sounds/clickfast.wav", volume = 0.55, pitch = 0.85 },
+		Switch = { id = "rbxasset://sounds/button.wav", volume = 0.3, pitch = 1.6 },
+		Charge = { id = gun, volume = 0.4, pitch = 0.4 },
+	},
+	Tail = { id = "rbxasset://sounds/collide.wav", volume = 0.3, pitch = 0.45, delayPer100 = 0.28, minDist = 45 },
 	Reload = { id = "rbxasset://sounds/clickfast.wav", volume = 0.6, pitch = 1 },
 	Empty = { id = "rbxasset://sounds/clickfast.wav", volume = 0.4, pitch = 1.6 },
 	Hit = { id = "rbxasset://sounds/clickfast.wav", volume = 0.25, pitch = 2 },

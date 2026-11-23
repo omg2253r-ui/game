@@ -11,12 +11,14 @@ local Net = require(Shared.Net)
 local GunService = {}
 local S
 local lastShot: { [Player]: number } = {}
+local burst: { [Player]: number } = {} -- shots fired in the current burst
 local ammo: { [Player]: { mag: number, max: number, reloadUntil: number, reload: number } } = {}
 local rng = Random.new()
 
 local function resetAmmo(player: Player, typeId: string)
 	local t = Guns.Types[typeId]
 	ammo[player] = { mag = t.mag, max = t.mag, reloadUntil = 0, reload = t.reload }
+	burst[player] = 0
 	Net.fire(player, "Ammo", t.mag, t.mag, 0)
 end
 
@@ -65,7 +67,7 @@ local function buildHandle(item): BasePart
 	h.Size = Vector3.new(0.45, 0.9, len * 0.55)
 	h.Color = t.color
 	h.Material = Enum.Material.SmoothPlastic
-	local function add(size: Vector3, offset: CFrame, color: Color3, mat: Enum.Material)
+	local function add(size: Vector3, offset: CFrame, color: Color3, mat: Enum.Material): Part
 		local p = Instance.new("Part")
 		p.Size = size
 		p.Color = color
@@ -76,9 +78,17 @@ local function buildHandle(item): BasePart
 		w.Part0, w.Part1 = h, p
 		w.Parent = p
 		p.Parent = h
+		return p
 	end
 	add(Vector3.new(0.35, 0.35, len), CFrame.new(0, 0.45, -len * 0.35), t.color:Lerp(Color3.new(0, 0, 0), 0.3), Enum.Material.Metal)
 	add(Vector3.new(0.5, 0.12, len * 0.7), CFrame.new(0, 0.7, -len * 0.2), rarityColor, Enum.Material.Neon)
+	-- named moving parts (WeaponAnim cycles the slide and drops/reinserts the magazine on the client)
+	add(Vector3.new(0.4, 0.3, len * 0.4), CFrame.new(0, 0.2, -len * 0.05), t.color:Lerp(Color3.new(1, 1, 1), 0.15), Enum.Material.Metal).Name = "Slide"
+	add(Vector3.new(0.34, 0.7, 0.4), CFrame.new(0, -0.55, len * 0.12), Color3.fromRGB(40, 40, 46), Enum.Material.Metal).Name = "Magazine"
+	local eject = Instance.new("Attachment")
+	eject.Name = "Eject"
+	eject.Position = Vector3.new(0.2, 0.55, -len * 0.1)
+	eject.Parent = h
 	local muzzle = Instance.new("Attachment")
 	muzzle.Name = "Muzzle"
 	muzzle.Position = Vector3.new(0, 0.45, -len * 0.85 - 0.2)
@@ -139,8 +149,9 @@ local function relay(player: Player, toPos: Vector3)
 	end
 end
 
--- kind: "m" monster id | "p" player userId
-local function onFire(player: Player, kind, targetId)
+-- Fire: kind "m" monster id | "p" player userId | "n" no target (miss, consumes ammo, tracer only)
+-- headOff = aim point height relative to the monster centre (clamped here), mode = fire mode (checked against the gun)
+local function onFire(player: Player, kind, targetId, headOff, mode, aimPos)
 	local item = S.InventoryService.EquippedGun(player)
 	local root = hrp(player)
 	local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
@@ -151,7 +162,22 @@ local function onFire(player: Player, kind, targetId)
 	local now = os.clock()
 	local inArena = S.PlayerService.InArena(player)
 	local rate = if inArena then t.rate else GunService.Rate(item)
-	if now - (lastShot[player] or 0) < (1 / rate) * Combat.FireTolerance then
+	-- fire mode: unknown/unsupported modes fall back to the gun's default. Burst fires N shots fast, then waits so
+	-- the average stays at `rate`, so no mode out-damages another
+	if type(mode) ~= "string" or not table.find(t.modes, mode) then
+		mode = t.modes[1]
+	end
+	local interval = 1 / rate
+	local gap = now - (lastShot[player] or 0)
+	local n = burst[player] or 0
+	local need = interval
+	local inBurst = false
+	if mode == "burst" then
+		local fast = interval / Guns.Burst.RateMult
+		inBurst = n > 0 and n < t.burst and gap < interval
+		need = if inBurst then fast else t.burst * interval - (t.burst - 1) * fast
+	end
+	if gap < need * Combat.FireTolerance then
 		return
 	end
 	local a = ammo[player]
@@ -166,12 +192,20 @@ local function onFire(player: Player, kind, targetId)
 		return
 	end
 	lastShot[player] = now
+	burst[player] = if inBurst then n + 1 else 1
 	a.mag -= 1
 	if a.mag <= 0 then
 		startReload(player)
 	end
 
-	if kind == "m" then
+	if kind == "n" then
+		if typeof(aimPos) == "Vector3" and aimPos == aimPos then
+			local off = aimPos - root.Position
+			if off.Magnitude > 1 then
+				relay(player, root.Position + off.Unit * math.min(off.Magnitude, GunService.Range(item)))
+			end
+		end
+	elseif kind == "m" then
 		if S.PlayerService.InArena(player) then
 			return
 		end
@@ -184,7 +218,14 @@ local function onFire(player: Player, kind, targetId)
 			return
 		end
 		local dist = (pos - root.Position).Magnitude
-		local crit = rng:NextNumber() < t.crit + ench(item, "crit")
+		-- weak point: the aim point must lie in the top HeadFraction of the monster (offset clamped; never raw damage)
+		local size = rec.def.size
+		local head = false
+		if type(headOff) == "number" and headOff == headOff then
+			local off = math.clamp(headOff, -size * 0.6, size * 0.6)
+			head = off >= size * (0.5 - Guns.HeadFraction) and off <= size * 0.55
+		end
+		local crit = head or rng:NextNumber() < t.crit + ench(item, "crit")
 		local mastery = 1 + (item.lvl or 0) * Guns.Mastery.DamagePerLevel
 		local dmg = item.dmg * Guns.PowerFactor(S.PlayerService.GetPower(player)) * Guns.Falloff(item.id, dist * (1 - ench(item, "range")))
 			* mastery * (1 + ench(item, "dmg"))
@@ -245,7 +286,7 @@ function GunService.Init(services)
 	Net.declare("Shot")
 	Net.declare("Hit")
 	Net.declare("Ammo")
-	Net.on("Fire", onFire, 12)
+	Net.on("Fire", onFire, 20)
 	Net.on("Reload", startReload, 2)
 
 	S.InventoryService.GearChanged:Connect(function(player, slot)
@@ -268,6 +309,7 @@ function GunService.Init(services)
 		lastShot[p] = nil
 		lastRelay[p] = nil
 		ammo[p] = nil
+		burst[p] = nil
 	end)
 end
 

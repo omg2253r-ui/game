@@ -706,6 +706,8 @@ def build_one(kind, a, out_path):
     meshes = R.finalize(objs, join_name=kind.capitalize())
     for m in meshes:
         R.origin_bottom(m)
+        if len(m.data.polygons) < 4000:  # bake procedural grunge -> <=512px albedo PNG next to the FBX
+            R.bake_albedo(m, os.path.splitext(out_path)[0] + ".png", 512 if budget in ("prop", "hero_prop", "building") else 256)
     R.check_budget(meshes, budget)
     R.export_fbx(out_path, meshes)
 

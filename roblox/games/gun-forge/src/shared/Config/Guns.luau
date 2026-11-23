@@ -12,23 +12,43 @@ G.Rarities = {
 G.TierMult = { 1, 3, 9, 27, 81 }
 
 -- rate = shots/sec, range studs, pellets multiply damage (hitscan on one target)
--- rate = shots/sec, range studs, pellets multiply damage (hitscan on one target)
--- mag/reload = magazine + reload seconds, spread = visual cone (deg), recoil = camera kick (deg),
--- crit = crit chance, falloff = damage multiplier at max range (linear from 60% range)
+-- mag/reload = magazine + reload seconds, spread = hip cone (deg), recoil = camera kick (deg),
+-- crit = random crit chance (low; headshots are the main crit), falloff = dmg multiplier at max range (linear from 60% range)
+-- Realism (client feel, never changes damage): modes = allowed fire modes (first = default), burst = shots per burst,
+-- fov = ADS field of view, adsSpread/adsRecoil/adsSpeed = ADS multipliers, vKick/hKick = recoil pattern per shot (deg),
+-- bloom = spread added per shot (deg, decays), bloomMax, charge = charge-up seconds, scope = ADS scope overlay,
+-- eject = shell casings, tail = distant report, travel = bullet speed studs/s (tracer travel time)
 G.Types = {
-	pistol = { name = "Pistol", dmg = 10, rate = 3, range = 60, pellets = 1, minTier = 1, color = Color3.fromRGB(70, 70, 80),
-		mag = 12, reload = 1.1, spread = 1.5, recoil = 1.2, crit = 0.12, falloff = 0.75, sound = "pistol" },
-	smg = { name = "SMG", dmg = 4.5, rate = 8, range = 50, pellets = 1, minTier = 1, color = Color3.fromRGB(60, 90, 120),
-		mag = 30, reload = 1.6, spread = 3.5, recoil = 0.6, crit = 0.06, falloff = 0.6, sound = "smg" },
-	shotgun = { name = "Shotgun", dmg = 5, rate = 1.2, range = 35, pellets = 6, minTier = 1, color = Color3.fromRGB(120, 80, 50),
-		mag = 6, reload = 2.0, spread = 7, recoil = 3.5, crit = 0.05, falloff = 0.4, sound = "shotgun" },
-	rifle = { name = "Rifle", dmg = 9, rate = 4, range = 90, pellets = 1, minTier = 2, color = Color3.fromRGB(80, 100, 70),
-		mag = 24, reload = 1.8, spread = 1.0, recoil = 1.0, crit = 0.1, falloff = 0.85, sound = "rifle" },
-	blaster = { name = "Blaster", dmg = 20, rate = 2, range = 70, pellets = 1, minTier = 3, color = Color3.fromRGB(58, 216, 255),
-		mag = 10, reload = 1.5, spread = 0.8, recoil = 1.8, crit = 0.12, falloff = 0.8, sound = "blaster" },
-	railgun = { name = "Railgun", dmg = 75, rate = 0.6, range = 140, pellets = 1, minTier = 4, color = Color3.fromRGB(255, 79, 216),
-		mag = 4, reload = 2.4, spread = 0, recoil = 5, crit = 0.25, falloff = 1, sound = "railgun" },
+	pistol = { name = "Pistol", dmg = 11, rate = 3.5, range = 60, pellets = 1, minTier = 1, color = Color3.fromRGB(70, 70, 80),
+		mag = 12, reload = 1.1, spread = 0.9, recoil = 1.2, crit = 0.05, falloff = 0.75, sound = "pistol",
+		modes = { "semi", "burst" }, burst = 3, fov = 62, adsSpread = 0.35, adsRecoil = 0.6, adsSpeed = 0.75,
+		vKick = 1.0, hKick = 0.35, bloom = 0.35, bloomMax = 2.5, eject = true, tail = true, travel = 520 },
+	smg = { name = "SMG", dmg = 3.6, rate = 11, range = 50, pellets = 1, minTier = 1, color = Color3.fromRGB(60, 90, 120),
+		mag = 32, reload = 1.6, spread = 2.2, recoil = 0.6, crit = 0.03, falloff = 0.6, sound = "smg",
+		modes = { "auto", "burst", "semi" }, burst = 3, fov = 64, adsSpread = 0.5, adsRecoil = 0.65, adsSpeed = 0.8,
+		vKick = 0.55, hKick = 0.45, bloom = 0.3, bloomMax = 5, eject = true, tail = false, travel = 480 },
+	shotgun = { name = "Shotgun", dmg = 4.5, rate = 1.1, range = 30, pellets = 8, minTier = 1, color = Color3.fromRGB(120, 80, 50),
+		mag = 6, reload = 2.2, spread = 6, recoil = 3.5, crit = 0.03, falloff = 0.35, sound = "shotgun",
+		modes = { "semi" }, burst = 1, fov = 66, adsSpread = 0.6, adsRecoil = 0.7, adsSpeed = 0.75,
+		vKick = 3.0, hKick = 0.8, bloom = 0.5, bloomMax = 2, eject = true, tail = true, travel = 380 },
+	rifle = { name = "Rifle", dmg = 8, rate = 5, range = 100, pellets = 1, minTier = 2, color = Color3.fromRGB(80, 100, 70),
+		mag = 30, reload = 1.9, spread = 1.2, recoil = 1.0, crit = 0.04, falloff = 0.85, sound = "rifle",
+		modes = { "auto", "burst", "semi" }, burst = 3, fov = 55, adsSpread = 0.3, adsRecoil = 0.55, adsSpeed = 0.7,
+		vKick = 0.85, hKick = 0.4, bloom = 0.25, bloomMax = 4, eject = true, tail = true, travel = 650 },
+	blaster = { name = "Blaster", dmg = 22, rate = 1.8, range = 70, pellets = 1, minTier = 3, color = Color3.fromRGB(58, 216, 255),
+		mag = 10, reload = 1.6, spread = 0.6, recoil = 1.8, crit = 0.06, falloff = 0.8, sound = "blaster",
+		modes = { "semi" }, burst = 1, fov = 58, adsSpread = 0.4, adsRecoil = 0.6, adsSpeed = 0.75,
+		vKick = 1.6, hKick = 0.3, bloom = 0.5, bloomMax = 2.5, eject = false, tail = true, travel = 300 },
+	railgun = { name = "Railgun", dmg = 80, rate = 0.55, range = 140, pellets = 1, minTier = 4, color = Color3.fromRGB(255, 79, 216),
+		mag = 4, reload = 2.6, spread = 0.3, recoil = 5, crit = 0.08, falloff = 1, sound = "railgun",
+		modes = { "semi" }, burst = 1, fov = 28, adsSpread = 0.1, adsRecoil = 0.7, adsSpeed = 0.55, scope = true, charge = 0.6,
+		vKick = 4.5, hKick = 0.5, bloom = 0.6, bloomMax = 1.5, eject = false, tail = true, travel = 1200 },
 }
+G.FireModes = { "semi", "burst", "auto" }
+-- Burst: shots inside a burst fire at rate * RateMult; the pause before the next burst keeps the average at `rate`
+G.Burst = { RateMult = 1.8 }
+-- Weak point: top HeadFraction of a monster's height is its head; crit when the aim point lies in it
+G.HeadFraction = 0.35
 G.CritMultiplier = 2
 G.TypeOrder = { "pistol", "smg", "shotgun", "rifle", "blaster", "railgun" }
 

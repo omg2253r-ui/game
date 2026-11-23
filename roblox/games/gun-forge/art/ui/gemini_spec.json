@@ -1,0 +1,806 @@
+{
+ "style": "glossy stylized sci-fi game UI asset, neon cyan, magenta and gold accents on dark navy, clean vector-like shading, thick dark outline, centered single subject, high contrast, readable at small size, absolutely no text, no letters, no watermark",
+ "out_dir": "roblox/games/gun-forge/art/ui",
+ "items": [
+  {
+   "name": "menu_shop",
+   "prompt": "Game menu icon: shopping bag with a glowing gem and price tag",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_rewards",
+   "prompt": "Game menu icon: gift box with a big ribbon bow, golden sparkles",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_quests",
+   "prompt": "Game menu icon: scroll with a glowing checklist and a gold exclamation mark seal",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_games",
+   "prompt": "Game menu icon: game controller with a target and lightning",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_forge",
+   "prompt": "Game menu icon: glowing anvil with a hammer and magenta sparks",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_bag",
+   "prompt": "Game menu icon: sci-fi backpack with glowing cyan pockets",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_pets",
+   "prompt": "Game menu icon: cute round pet paw print with a tiny heart",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_pvp",
+   "prompt": "Game menu icon: two crossed futuristic blasters with a shield",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_rebirth",
+   "prompt": "Game menu icon: golden circular arrows phoenix swirl, rebirth symbol",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_clan",
+   "prompt": "Game menu icon: shield banner with a crown and two stars",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_gems",
+   "prompt": "Game menu icon: large faceted purple gem with sparkles",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_raid",
+   "prompt": "Game menu icon: skull-shaped boss helmet with red glowing eyes and crossed swords",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_pass",
+   "prompt": "Game menu icon: golden ticket with a star and ribbon, season pass",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_goals",
+   "prompt": "Game menu icon: golden trophy cup with a star",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_spin",
+   "prompt": "Game menu icon: colorful prize wheel with a pointer",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "menu_settings",
+   "prompt": "Game menu icon: chunky metal gear cog with cyan glow",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "cur_coins",
+   "prompt": "Glossy gold coin with a lightning bolt emblem, front view",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "cur_gems",
+   "prompt": "Single faceted purple-magenta gem, front view, shiny",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "cur_raid",
+   "prompt": "Red hexagonal raid token with a skull emblem, metallic",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "cur_power",
+   "prompt": "Cyan lightning bolt inside a glowing circle, power symbol",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "gun_pistol",
+   "prompt": "Weapon icon: compact sci-fi pistol, side view, angled 30 degrees",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "gun_smg",
+   "prompt": "Weapon icon: sci-fi submachine gun with long magazine, side view, angled 30 degrees",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "gun_shotgun",
+   "prompt": "Weapon icon: chunky sci-fi pump shotgun, side view, angled 30 degrees",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "gun_rifle",
+   "prompt": "Weapon icon: sci-fi assault rifle with scope, side view, angled 30 degrees",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "gun_blaster",
+   "prompt": "Weapon icon: glowing plasma blaster with energy core, side view, angled 30 degrees",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "gun_railgun",
+   "prompt": "Weapon icon: heavy railgun with electric arcs between rails, side view, angled 30 degrees",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "armor_helmet",
+   "prompt": "Armor icon: sci-fi visor helmet",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "armor_vest",
+   "prompt": "Armor icon: armored tactical vest with glowing core",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "armor_boots",
+   "prompt": "Armor icon: pair of armored sci-fi boots",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_slime_goo",
+   "prompt": "Crafting material icon: blob of green slime goo",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_slime_core",
+   "prompt": "Crafting material icon: glowing blue-cyan crystal core inside slime",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_king_jelly",
+   "prompt": "Crafting material icon: golden crown made of jelly",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_scrap_metal",
+   "prompt": "Crafting material icon: pile of bolts and scrap metal",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_gear_core",
+   "prompt": "Crafting material icon: orange glowing gear core",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_sand_titan_shard",
+   "prompt": "Crafting material icon: orange-red crystal shard, titan fragment",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_frost_shard",
+   "prompt": "Crafting material icon: pale blue ice shard",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_ice_core",
+   "prompt": "Crafting material icon: deep blue ice crystal core",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_yeti_fang",
+   "prompt": "Crafting material icon: large white fang tooth",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_magma_rock",
+   "prompt": "Crafting material icon: black rock with glowing orange lava cracks",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_flame_core",
+   "prompt": "Crafting material icon: swirling red-orange fire orb core",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_forge_heart",
+   "prompt": "Crafting material icon: glowing red mechanical heart with golden gears",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_void_dust",
+   "prompt": "Crafting material icon: pile of sparkling purple dust",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_void_core",
+   "prompt": "Crafting material icon: magenta glowing swirling void orb",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "mat_void_crown",
+   "prompt": "Crafting material icon: floating cyan-white crown made of energy",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_gooey",
+   "prompt": "Cute collectible pet portrait, chibi style: round green slime blob pet with big eyes, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_pip",
+   "prompt": "Cute collectible pet portrait, chibi style: tiny orange kitten pet with cat ears, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_bubbles",
+   "prompt": "Cute collectible pet portrait, chibi style: blue bunny pet floating in bubbles, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_jelly_kid",
+   "prompt": "Cute collectible pet portrait, chibi style: yellow jelly cat pet wearing a tiny crown, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_bolt",
+   "prompt": "Cute collectible pet portrait, chibi style: tan little robot dog pet with bolts, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_cogsy",
+   "prompt": "Cute collectible pet portrait, chibi style: orange round gear robot pet with a cog on its head, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_dune_fox",
+   "prompt": "Cute collectible pet portrait, chibi style: sandy desert fox pet with big ears, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_titan_cub",
+   "prompt": "Cute collectible pet portrait, chibi style: orange-red armored cub pet, round ears, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_frosty",
+   "prompt": "Cute collectible pet portrait, chibi style: white snowball pet with round ears, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_ice_bun",
+   "prompt": "Cute collectible pet portrait, chibi style: light blue ice bunny pet, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_yeti_pup",
+   "prompt": "Cute collectible pet portrait, chibi style: fluffy white yeti puppy pet with icy fur, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_cinder",
+   "prompt": "Cute collectible pet portrait, chibi style: orange fire kitten pet with ember tail, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_lava_lizard",
+   "prompt": "Cute collectible pet portrait, chibi style: red lava lizard pet with glowing cracks, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_forge_spirit",
+   "prompt": "Cute collectible pet portrait, chibi style: red flame spirit bunny pet with gear halo, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_wisp",
+   "prompt": "Cute collectible pet portrait, chibi style: purple glowing ghost wisp pet, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_glitchy",
+   "prompt": "Cute collectible pet portrait, chibi style: cyan glitchy digital cat pet with pixel effects, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_nebula",
+   "prompt": "Cute collectible pet portrait, chibi style: magenta galaxy bunny pet with stars inside, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "pet_void_dragon",
+   "prompt": "Cute collectible pet portrait, chibi style: dark purple void dragon baby pet with glowing eyes, head and shoulders",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "card_frame_1",
+   "prompt": "Empty vertical item card frame, thick silver-grey glowing border with ornate sci-fi corners, dark navy translucent center, no content inside, rarity common",
+   "aspect_ratio": "3:4",
+   "transparent": true,
+   "size": [
+    256,
+    320
+   ]
+  },
+  {
+   "name": "card_frame_2",
+   "prompt": "Empty vertical item card frame, thick cyan glowing border with ornate sci-fi corners, dark navy translucent center, no content inside, rarity rare",
+   "aspect_ratio": "3:4",
+   "transparent": true,
+   "size": [
+    256,
+    320
+   ]
+  },
+  {
+   "name": "card_frame_3",
+   "prompt": "Empty vertical item card frame, thick purple glowing border with ornate sci-fi corners, dark navy translucent center, no content inside, rarity epic",
+   "aspect_ratio": "3:4",
+   "transparent": true,
+   "size": [
+    256,
+    320
+   ]
+  },
+  {
+   "name": "card_frame_4",
+   "prompt": "Empty vertical item card frame, thick gold glowing border with ornate sci-fi corners, dark navy translucent center, no content inside, rarity legendary",
+   "aspect_ratio": "3:4",
+   "transparent": true,
+   "size": [
+    256,
+    320
+   ]
+  },
+  {
+   "name": "card_frame_5",
+   "prompt": "Empty vertical item card frame, thick red-magenta glowing border with ornate sci-fi corners, dark navy translucent center, no content inside, rarity mythic",
+   "aspect_ratio": "3:4",
+   "transparent": true,
+   "size": [
+    256,
+    320
+   ]
+  },
+  {
+   "name": "panel_bg",
+   "prompt": "Empty rounded rectangle window panel, dark navy gradient with thin cyan neon inner border and subtle tech pattern, symmetric, no content",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    256,
+    256
+   ]
+  },
+  {
+   "name": "btn_green",
+   "prompt": "Empty wide rounded rectangle button, glossy green candy gradient with white top highlight and thick dark outline, no text, symmetric",
+   "aspect_ratio": "3:2",
+   "transparent": true,
+   "size": [
+    256,
+    128
+   ]
+  },
+  {
+   "name": "btn_gold",
+   "prompt": "Empty wide rounded rectangle button, glossy gold-yellow candy gradient with white top highlight and thick dark outline, no text, symmetric",
+   "aspect_ratio": "3:2",
+   "transparent": true,
+   "size": [
+    256,
+    128
+   ]
+  },
+  {
+   "name": "btn_red",
+   "prompt": "Empty wide rounded rectangle button, glossy red candy gradient with white top highlight and thick dark outline, no text, symmetric",
+   "aspect_ratio": "3:2",
+   "transparent": true,
+   "size": [
+    256,
+    128
+   ]
+  },
+  {
+   "name": "btn_blue",
+   "prompt": "Empty wide rounded rectangle button, glossy cyan-blue candy gradient with white top highlight and thick dark outline, no text, symmetric",
+   "aspect_ratio": "3:2",
+   "transparent": true,
+   "size": [
+    256,
+    128
+   ]
+  },
+  {
+   "name": "badge_x2",
+   "prompt": "Round magenta and gold burst badge with big x2 symbol, energetic starburst, pulse effect, the only text allowed is the characters x2",
+   "aspect_ratio": "1:1",
+   "transparent": true,
+   "size": [
+    512,
+    512
+   ]
+  },
+  {
+   "name": "banner_stage1",
+   "prompt": "Wide game stage banner background, bright green meadow with slimes and neon sky, cinematic, no characters, no text",
+   "aspect_ratio": "16:9",
+   "transparent": false,
+   "size": [
+    1024,
+    576
+   ]
+  },
+  {
+   "name": "banner_stage2",
+   "prompt": "Wide game stage banner background, orange desert with scrap metal and robot ruins, cinematic, no characters, no text",
+   "aspect_ratio": "16:9",
+   "transparent": false,
+   "size": [
+    1024,
+    576
+   ]
+  },
+  {
+   "name": "banner_stage3",
+   "prompt": "Wide game stage banner background, icy blue cave with glowing crystals, cinematic, no characters, no text",
+   "aspect_ratio": "16:9",
+   "transparent": false,
+   "size": [
+    1024,
+    576
+   ]
+  },
+  {
+   "name": "banner_stage4",
+   "prompt": "Wide game stage banner background, red-orange lava foundry with giant gears, cinematic, no characters, no text",
+   "aspect_ratio": "16:9",
+   "transparent": false,
+   "size": [
+    1024,
+    576
+   ]
+  },
+  {
+   "name": "banner_stage5",
+   "prompt": "Wide game stage banner background, purple-magenta void space with floating neon shapes, cinematic, no characters, no text",
+   "aspect_ratio": "16:9",
+   "transparent": false,
+   "size": [
+    1024,
+    576
+   ]
+  },
+  {
+   "name": "loading",
+   "prompt": "Loading screen background: futuristic gun forge workshop with glowing anvil, hero blasters on display, neon cyan and magenta lights, dark navy, empty center area for a logo",
+   "aspect_ratio": "16:9",
+   "transparent": false,
+   "size": [
+    1280,
+    720
+   ]
+  },
+  {
+   "name": "banner_shop",
+   "prompt": "Ultra-wide shop banner: treasure pile of coins, gems and glowing guns on dark navy with neon rays, empty left area",
+   "aspect_ratio": "21:9",
+   "transparent": false,
+   "size": [
+    1260,
+    540
+   ]
+  }
+ ]
+}

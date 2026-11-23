@@ -33,14 +33,23 @@ local function newPart(): Part
 	return p
 end
 
-function Vfx.Sound(def, pos: Vector3?)
+-- extra: optional { pitch = multiplier, volume = multiplier, delay = seconds } for layered weapon audio
+function Vfx.Sound(def, pos: Vector3?, extra: { pitch: number?, volume: number?, delay: number? }?)
 	if not def or not def.id then
+		return
+	end
+	if extra and extra.delay and extra.delay > 0 then
+		local d = extra.delay
+		extra.delay = nil
+		task.delay(d, function()
+			Vfx.Sound(def, pos, extra)
+		end)
 		return
 	end
 	local s = Instance.new("Sound")
 	s.SoundId = def.id
-	s.Volume = def.volume or 0.5
-	s.PlaybackSpeed = (def.pitch or 1) * (0.94 + math.random() * 0.12) -- slight variation = less robotic
+	s.Volume = (def.volume or 0.5) * (extra and extra.volume or 1)
+	s.PlaybackSpeed = (def.pitch or 1) * (extra and extra.pitch or 1) * (0.94 + math.random() * 0.12) -- slight variation = less robotic
 	if pos then
 		local a = Instance.new("Attachment")
 		a.WorldPosition = pos
@@ -71,12 +80,13 @@ local function emitAt(kind: string, pos: Vector3, n: number, color: Color3?)
 end
 
 -- travelling bolt (fast) + fading streak: reads as a real bullet but costs 2 parts for 0.1 s
-function Vfx.Bullet(from: Vector3, to: Vector3, color: Color3, onArrive: (() -> ())?)
+-- speed = studs/s (travel time scales with distance; default 450)
+function Vfx.Bullet(from: Vector3, to: Vector3, color: Color3, onArrive: (() -> ())?, speed: number?)
 	local dist = (to - from).Magnitude
 	if dist < 0.5 then
 		return
 	end
-	local travel = math.clamp(dist / 700, 0.03, 0.14)
+	local travel = math.clamp(dist / (speed or 450), 0.03, 0.4)
 	local bolt = newPart()
 	bolt.Color = color
 	bolt.Size = Vector3.new(0.14, 0.14, math.min(5, dist))
