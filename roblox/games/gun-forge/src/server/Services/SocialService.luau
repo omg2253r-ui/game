@@ -36,7 +36,7 @@ local function onJoin(newP: Player)
 	friends[newP] = friends[newP] or {}
 	for _, other in ipairs(Players:GetPlayers()) do
 		if other ~= newP then
-			local ok, yes = pcall(newP.IsFriendsWith, newP, other.UserId)
+			local ok, yes = pcall(newP.IsFriendsWithAsync, newP, other.UserId)
 			if ok and yes then
 				friends[newP][other] = true
 				friends[other] = friends[other] or {}
