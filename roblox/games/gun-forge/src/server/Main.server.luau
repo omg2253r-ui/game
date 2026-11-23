@@ -49,7 +49,10 @@ end
 -- DataService.Init last-but-first: other services must subscribe to Loaded before players load
 for _, name in ipairs(order) do
 	if name ~= "DataService" and services[name].Init then
-		services[name].Init(services)
+		local ok, err = pcall(services[name].Init, services) -- one broken service must not stop DataService.Init
+		if not ok then
+			warn("[Server] " .. name .. " Init failed:", err)
+		end
 	end
 end
 services.DataService.Init()

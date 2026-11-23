@@ -1166,7 +1166,10 @@ end
 -- DataService.Init last-but-first: other services must subscribe to Loaded before players load
 for _, name in ipairs(order) do
 	if name ~= "DataService" and services[name].Init then
-		services[name].Init(services)
+		local ok, err = pcall(services[name].Init, services) -- one broken service must not stop DataService.Init
+		if not ok then
+			warn("[Server] " .. name .. " Init failed:", err)
+		end
 	end
 end
 services.DataService.Init()
@@ -5167,6 +5170,7 @@ local function applyPerks(player: Player)
 		local perks = def and def.perks or {}
 		if humanoid and perks.walkSpeed then
 			humanoid.WalkSpeed = math.max(humanoid.WalkSpeed, perks.walkSpeed)
+			humanoid:SetAttribute("BaseSpeed", math.max(humanoid:GetAttribute("BaseSpeed") or 0, perks.walkSpeed))
 		end
 		if humanoid and perks.jumpPower then
 			humanoid.UseJumpPower = true
@@ -5982,6 +5986,7 @@ function PlayerService.RefreshCharacter(player: Player)
 		end
 	end
 	hum.WalkSpeed = speed
+	hum:SetAttribute("BaseSpeed", speed)
 end
 
 function PlayerService.Init(services)
@@ -6996,21 +7001,32 @@ function SocialService.Mult(player: Player): number
 	return m
 end
 
-local function recount()
-	local list = Players:GetPlayers()
-	for _, p in ipairs(list) do
-		local n = 0
-		for _, other in ipairs(list) do
-			if other ~= p then
-				local ok, yes = pcall(p.IsFriendsWith, p, other.UserId)
-				if ok and yes then
-					n += 1
-				end
+local friends: { [Player]: { [Player]: boolean } } = {}
+
+local function refresh(p: Player)
+	local n = 0
+	for _ in pairs(friends[p] or {}) do
+		n += 1
+	end
+	friendCount[p] = n
+	p:SetAttribute("SocialBoost", math.floor((SocialService.Mult(p) - 1) * 100 + 0.5))
+end
+
+-- O(n) per join: only check pairs that involve the new player (web call each), not all pairs
+local function onJoin(newP: Player)
+	friends[newP] = friends[newP] or {}
+	for _, other in ipairs(Players:GetPlayers()) do
+		if other ~= newP then
+			local ok, yes = pcall(newP.IsFriendsWith, newP, other.UserId)
+			if ok and yes then
+				friends[newP][other] = true
+				friends[other] = friends[other] or {}
+				friends[other][newP] = true
+				refresh(other)
 			end
 		end
-		friendCount[p] = n
-		p:SetAttribute("SocialBoost", math.floor((SocialService.Mult(p) - 1) * 100 + 0.5))
 	end
+	refresh(newP)
 end
 
 function SocialService.Init(services)
@@ -7020,11 +7036,19 @@ function SocialService.Init(services)
 			local ok, yes = pcall(p.IsInGroup, p, Social.GroupId)
 			inGroup[p] = ok and yes or false
 		end
-		task.delay(2, recount)
+		task.delay(2, onJoin, p)
 	end)
 	Players.PlayerRemoving:Connect(function(p)
 		friendCount[p], inGroup[p] = nil, nil
-		task.delay(1, recount)
+		for other in pairs(friends[p] or {}) do
+			if friends[other] then
+				friends[other][p] = nil
+				if other.Parent then
+					refresh(other)
+				end
+			end
+		end
+		friends[p] = nil
 	end)
 	Net.handle("GroupChest", function(p)
 		if Social.GroupId == 0 then
@@ -7490,11 +7514,13 @@ return TournamentService
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Net = require(ReplicatedStorage.Shared.Net)
+local Pets = require(ReplicatedStorage.Shared.Config.Pets)
+local Recipes = require(ReplicatedStorage.Shared.Config.Recipes)
 
 local TradeService = {}
 local S
 local MAX_ITEMS, CONFIRM = 8, 3
-type Trade = { a: Player, b: Player, offer: { [Player]: { string } }, ready: { [Player]: boolean }, confirmAt: number?, done: boolean }
+type Trade = { a: Player, b: Player, offer: { [Player]: { string } }, ready: { [Player]: boolean }, confirmAt: number?, stamp: number?, done: boolean }
 local trades: { [Player]: Trade } = {}
 local requests: { [Player]: { [Player]: number } } = {} -- target -&gt; from -&gt; time
 
@@ -7567,7 +7593,7 @@ local function canReceive(p: Player, incoming: { string }, outgoing: { string },
 			gear -= 1
 		end
 	end
-	return S.InventoryService.ItemCount(p, "pet") + pets &lt;= 200 and S.InventoryService.ItemCount(p, "gun") + gear &lt;= 150
+	return S.InventoryService.ItemCount(p, "pet") + pets &lt;= Pets.MaxPets and S.InventoryService.ItemCount(p, "gun") + gear &lt;= Recipes.MaxItems
 end
 
 local function valid(t: Trade): boolean
@@ -7653,6 +7679,9 @@ function TradeService.Init(services)
 			return
 		end
 		requests[target] = requests[target] or {}
+		if requests[target][p] and os.clock() - requests[target][p] &lt; 10 then
+			return -- no invite spam
+		end
 		requests[target][p] = os.clock()
 		Net.fire(target, "TradeInvite", { fromId = p.UserId, from = p.DisplayName })
 		S.EconomyService.Toast(p, "Trade request sent to " .. target.DisplayName, "info")
@@ -8208,7 +8237,7 @@ function Afk.Init()
 	end, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 150, 1, -16), Size = UDim2.fromOffset(70, 56), Parent = gui })
 	btn.Label.TextSize = 16
 
-	local chip = UI.panel({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 98), Size = UDim2.fromOffset(200, 24), BackgroundColor3 = C.Primary, Visible = false, Parent = gui })
+	local chip = UI.panel({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(0.5, -176, 0, 64), Size = UDim2.fromOffset(200, 24), BackgroundColor3 = C.Primary, Visible = false, Parent = gui })
 	local chipL = UI.label("", 13, { Size = UDim2.fromScale(1, 1), Parent = chip })
 	player:GetAttributeChangedSignal("SocialBoost"):Connect(function()
 		local b = player:GetAttribute("SocialBoost") or 0
@@ -8871,7 +8900,6 @@ local bloom = 0 -- extra spread degrees from spraying
 local shotIdx = 0
 local recoilP, recoilPV, recoilY, recoilYV = 0, 0, 0, 0 -- radians (camera offset, springs back to 0)
 local baseFov = 70
-local slowRatio = 0
 local origSens = UserInputService.MouseDeltaSensitivity
 local hitFlashUntil = 0
 -- ui
@@ -8880,7 +8908,6 @@ local cross: { Frame } = {}
 local crossRoot: Frame? = nil
 local scopeBars: { Frame } = {}
 local scopeRoot: Frame? = nil
-local slowHum: Humanoid? = nil
 
 local function tool(): Tool?
 	local c = player.Character
@@ -9338,21 +9365,19 @@ local function renderStep(dt: number)
 		cam.FieldOfView = baseFov + (def.fov - baseFov) * adsA
 		UserInputService.MouseDeltaSensitivity = origSens * (1 - 0.5 * adsA * (1 - def.fov / 70))
 	else
-		baseFov = cam.FieldOfView
+		local wantFov = if player:GetAttribute("Sprinting") then 80 else 70
+		baseFov = cam.FieldOfView + (wantFov - cam.FieldOfView) * math.clamp(dt * 8, 0, 1)
+		cam.FieldOfView = baseFov
 		UserInputService.MouseDeltaSensitivity = origSens
 	end
 
-	-- slower walking while aimed
-	local wantSlow = def ~= nil and adsA &gt; 0.5
-	if slowRatio ~= 0 and slowHum ~= hum then
-		slowRatio, slowHum = 0, nil -- respawned: the old humanoid is gone
-	end
-	if wantSlow and slowRatio == 0 and hum and def then
-		slowRatio, slowHum = def.adsSpeed, hum
-		hum.WalkSpeed *= slowRatio
-	elseif not wantSlow and slowRatio ~= 0 and hum then
-		hum.WalkSpeed /= slowRatio
-		slowRatio, slowHum = 0, nil
+	-- speed = server BaseSpeed attribute * sprint * ADS (single owner; no read-modify-write of WalkSpeed)
+	local baseSpd = hum and hum:GetAttribute("BaseSpeed")
+	if hum and type(baseSpd) == "number" then
+		local want = baseSpd * (if player:GetAttribute("Sprinting") then 1.4 else 1) * (if def and adsA &gt; 0.5 then def.adsSpeed else 1)
+		if math.abs(hum.WalkSpeed - want) &gt; 0.01 then
+			hum.WalkSpeed = want
+		end
 	end
 
 	-- recoil springs (camera offset), applied after the camera script so it recovers on its own
@@ -9455,7 +9480,7 @@ function GunController.Init()
 	end)
 	local touch = UserInputService.TouchEnabled
 	local fire = UI.button("FIRE", Theme.Colors.Danger, function() end, {
-		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -150, 1, -150), Size = UDim2.fromOffset(110, 110), Visible = touch, Parent = gui })
+		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -176, 1, -150), Size = UDim2.fromOffset(110, 110), Visible = touch, Parent = gui })
 	UI.corner(UDim.new(1, 0)).Parent = fire
 	fire.MouseButton1Down:Connect(function()
 		holding = true
@@ -9468,12 +9493,12 @@ function GunController.Init()
 		holding = false
 	end)
 	local reloadBtn = UI.button("R", Theme.Colors.PanelLight, GunController.Reload, {
-		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -270, 1, -160), Size = UDim2.fromOffset(64, 64), Visible = touch, Parent = gui })
+		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -296, 1, -160), Size = UDim2.fromOffset(64, 64), Visible = touch, Parent = gui })
 	UI.corner(UDim.new(1, 0)).Parent = reloadBtn
 	-- mobile ADS toggle (above FIRE)
 	local adsBtn = UI.button("ADS", Theme.Colors.PanelLight, function()
 		adsWanted = not adsWanted
-	end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -150, 1, -268), Size = UDim2.fromOffset(70, 70), Visible = touch, Parent = gui })
+	end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -176, 1, -268), Size = UDim2.fromOffset(70, 70), Visible = touch, Parent = gui })
 	UI.corner(UDim.new(1, 0)).Parent = adsBtn
 	-- fire mode button: next to FIRE on touch, above AUTO on PC (also key B)
 	local mb: any = UI.button("SEMI", Theme.Colors.PanelLight, function()
@@ -9482,7 +9507,7 @@ function GunController.Init()
 		if def then
 			cycleMode(def)
 		end
-	end, { AnchorPoint = Vector2.new(1, 1), Position = if touch then UDim2.new(1, -270, 1, -232) else UDim2.new(1, -16, 1, -142),
+	end, { AnchorPoint = Vector2.new(1, 1), Position = if touch then UDim2.new(1, -296, 1, -232) else UDim2.new(1, -16, 1, -210),
 		Size = if touch then UDim2.fromOffset(64, 40) else UDim2.fromOffset(150, 34), Visible = false, Parent = gui })
 	mb.Label.TextSize = 16
 	modeBtn = mb
@@ -9496,7 +9521,7 @@ function GunController.Init()
 		end
 		GunController.Auto = not GunController.Auto
 		auto.Label.Text = if GunController.Auto then "AUTO: ON" else "AUTO: OFF"
-	end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -86), Size = UDim2.fromOffset(150, 50), Parent = gui })
+	end, { AnchorPoint = Vector2.new(1, 1), Position = if touch then UDim2.new(1, -140, 1, -86) else UDim2.new(1, -16, 1, -86), Size = UDim2.fromOffset(150, 50), Parent = gui })
 	auto.Label.TextSize = 18
 
 	Net.listen("Ammo", function(mag: number, max: number, reload: number)
@@ -9758,7 +9783,7 @@ function Hud.Init()
 		pulseBtn.Label.Text = ""
 	end
 
-	banner = UI.label("", 30, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104), Size = UDim2.fromOffset(900, 40), TextColor3 = C.Gold, Visible = false, Parent = gui })
+	banner = UI.label("", 30, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104), Size = UDim2.fromOffset(560, 40), TextColor3 = C.Gold, Visible = false, Parent = gui })
 
 	Net.listen("PulseOffer", function(seconds)
 		Vfx.Sound(Sounds.Pulse)
@@ -9867,8 +9892,7 @@ function Hud.Init()
 			return
 		end
 		sprinting = on
-		hum.WalkSpeed = if on then hum.WalkSpeed * 1.4 else hum.WalkSpeed / 1.4
-		TweenService:Create(Workspace.CurrentCamera, TweenInfo.new(0.25), { FieldOfView = if on then 80 else 70 }):Play()
+		player:SetAttribute("Sprinting", on) -- GunController applies speed/FOV (shared with ADS)
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if not processed and input.KeyCode == Enum.KeyCode.LeftShift then
@@ -9885,12 +9909,12 @@ function Hud.Init()
 		sb = UI.button("RUN", C.PanelLight, function()
 			setSprint(not sprinting)
 			sb.BackgroundColor3 = if sprinting then C.Energy else C.PanelLight
-		end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -270, 1, -236), Size = UDim2.fromOffset(64, 64), Parent = gui })
+		end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -370, 1, -160), Size = UDim2.fromOffset(64, 64), Parent = gui })
 		UI.corner(UDim.new(1, 0)).Parent = sb
 	end
 	player.CharacterAdded:Connect(function()
 		sprinting = false
-		Workspace.CurrentCamera.FieldOfView = 70
+		player:SetAttribute("Sprinting", false)
 	end)
 
 	-- stage progress bar: distance from the gate to the boss of the stage you are in
@@ -11403,7 +11427,7 @@ end
 
 local function eventBanner()
 	local gui = UIController.Gui()
-	local holder = UI.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 130), Size = UDim2.fromOffset(240, 200), Parent = gui })
+	local holder = UI.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 196), Size = UDim2.fromOffset(240, 200), Parent = gui })
 	UI.new("UIListLayout", { Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Right, Parent = holder })
 	local events = {}
 	Net.listen("EventState", function(list)
@@ -13049,7 +13073,7 @@ end
 
 -- compact always-visible story tracker (top-right); onClick opens STORY tab
 function P.tracker(gui: Instance, onClick: () -&gt; ())
-	local f = UI.panel({ Name = "StoryTracker", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 200), Size = UDim2.fromOffset(240, 64), BackgroundColor3 = C.Bg, BackgroundTransparency = 0.15, Parent = gui })
+	local f = UI.panel({ Name = "StoryTracker", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 126), Size = UDim2.fromOffset(240, 64), BackgroundColor3 = C.Bg, BackgroundTransparency = 0.15, Parent = gui })
 	local title = UI.label("STORY", 14, { Font = Theme.Font, TextColor3 = C.Accent, Position = UDim2.fromOffset(8, 2), Size = UDim2.new(1, -16, 0, 18), TextXAlignment = Enum.TextXAlignment.Left, Parent = f })
 	local text = UI.label("", 13, { Font = Theme.FontBody, Position = UDim2.fromOffset(8, 20), Size = UDim2.new(1, -16, 0, 28), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Parent = f })
 	local bar = UI.new("Frame", { BackgroundColor3 = C.Panel, Position = UDim2.new(0, 8, 1, -10), Size = UDim2.new(1, -16, 0, 6), Parent = f }, { UI.corner(UDim.new(1, 0)) })

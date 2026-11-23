@@ -20,21 +20,32 @@ function SocialService.Mult(player: Player): number
 	return m
 end
 
-local function recount()
-	local list = Players:GetPlayers()
-	for _, p in ipairs(list) do
-		local n = 0
-		for _, other in ipairs(list) do
-			if other ~= p then
-				local ok, yes = pcall(p.IsFriendsWith, p, other.UserId)
-				if ok and yes then
-					n += 1
-				end
+local friends: { [Player]: { [Player]: boolean } } = {}
+
+local function refresh(p: Player)
+	local n = 0
+	for _ in pairs(friends[p] or {}) do
+		n += 1
+	end
+	friendCount[p] = n
+	p:SetAttribute("SocialBoost", math.floor((SocialService.Mult(p) - 1) * 100 + 0.5))
+end
+
+-- O(n) per join: only check pairs that involve the new player (web call each), not all pairs
+local function onJoin(newP: Player)
+	friends[newP] = friends[newP] or {}
+	for _, other in ipairs(Players:GetPlayers()) do
+		if other ~= newP then
+			local ok, yes = pcall(newP.IsFriendsWith, newP, other.UserId)
+			if ok and yes then
+				friends[newP][other] = true
+				friends[other] = friends[other] or {}
+				friends[other][newP] = true
+				refresh(other)
 			end
 		end
-		friendCount[p] = n
-		p:SetAttribute("SocialBoost", math.floor((SocialService.Mult(p) - 1) * 100 + 0.5))
 	end
+	refresh(newP)
 end
 
 function SocialService.Init(services)
@@ -44,11 +55,19 @@ function SocialService.Init(services)
 			local ok, yes = pcall(p.IsInGroup, p, Social.GroupId)
 			inGroup[p] = ok and yes or false
 		end
-		task.delay(2, recount)
+		task.delay(2, onJoin, p)
 	end)
 	Players.PlayerRemoving:Connect(function(p)
 		friendCount[p], inGroup[p] = nil, nil
-		task.delay(1, recount)
+		for other in pairs(friends[p] or {}) do
+			if friends[other] then
+				friends[other][p] = nil
+				if other.Parent then
+					refresh(other)
+				end
+			end
+		end
+		friends[p] = nil
 	end)
 	Net.handle("GroupChest", function(p)
 		if Social.GroupId == 0 then

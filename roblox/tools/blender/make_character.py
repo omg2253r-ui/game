@@ -195,11 +195,11 @@ class Rig:
             tip = p + Vector((0, 0, size if up else -size))
             self.tube(bone, p, tip, size * 0.32, 0.0, mat, 5)
 
-    def lid(self, bone, c, r, mat, tilt):
+    def lid(self, bone, c, r, mat, tilt, cut=0.18):
         o = R.add_obj("uv_sphere", segments=10, ring_count=6, radius=1, location=c)
         bm = bmesh.new()
         bm.from_mesh(o.data)
-        bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < 0.18], context="VERTS")
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < cut], context="VERTS")
         bm.to_mesh(o.data)
         bm.free()
         o.scale = (r * 1.12, r * 1.12, r * 1.12)
@@ -219,7 +219,7 @@ class Rig:
             self.ell(bone, c, (r, r * 0.8, r * 1.05), self.black, seg=10, rings=7)
             self.ell(bone, c + Vector((sx * -r * 0.28, -r * 0.62, r * 0.38)), (r * 0.3, r * 0.2, r * 0.3), self.white, seg=8, rings=4)
             self.ell(bone, c + Vector((sx * r * 0.3, -r * 0.7, -r * 0.3)), (r * 0.13, r * 0.1, r * 0.13), self.white, seg=6, rings=4)
-            self.lid(bone, c + Vector((0, 0.01, r * 0.12)), r, self.main, sx * math.radians(10))
+            self.lid(bone, c + Vector((0, 0.01, r * 0.12)), r, self.main, sx * math.radians(10), cut=0.55)
             return
         # angry: white ball, coloured iris, slit pupil, heavy brow lid
         self.ell(bone, c, (r, r * 0.8, r), self.white, seg=10, rings=6)

@@ -50,6 +50,8 @@ def main():
         before = set(bpy.data.objects)
         bpy.ops.import_scene.fbx(filepath=os.path.abspath(path))
         new = [o for o in bpy.data.objects if o not in before]
+        for o in new:   # baked clips would override our layout/pose: render the rest pose
+            o.animation_data_clear()
         roots = [o for o in new if o.parent is None]
         ms = [o for o in new if o.type == "MESH"]
         bpy.context.view_layer.update()
