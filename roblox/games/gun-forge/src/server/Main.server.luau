@@ -14,6 +14,7 @@ local order = {
 	"LeaderboardService",
 	"CollectibleService",
 	-- Gun Forge
+	"EventService",
 	"PlayerService",
 	"InventoryService",
 	"PetService",
@@ -36,6 +37,7 @@ local order = {
 	"AchievementService",
 	"SpinService",
 	"StoryService",
+	"TradeService",
 }
 
 local services = {}
