@@ -264,6 +264,7 @@ def bake_atlas(named, png_path, size=512):
     mat = bake_albedo(big, png_path, size)
     names = list(named)
     out = {}
+    big.name = big.data.name = "_atlas"
     for name in names[:-1]:
         before = set(bpy.data.objects)
         select_only([big])

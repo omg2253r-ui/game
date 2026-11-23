@@ -35,8 +35,8 @@ import rbx_lib as R  # noqa: E402
 RARITY = ["#c8c8d0", "#3ad8ff", "#b56cff", "#ffc935", "#ff4f6a"]   # Guns.luau rarity colours
 TYPES = ["pistol", "smg", "shotgun", "rifle", "blaster", "railgun"]
 # furniture tint per type (r1 = plain gunmetal; sci-fi types a touch of hue)
-POLY = {"pistol": "#23252b", "smg": "#22262b", "shotgun": "#2b2520", "rifle": "#24282a", "blaster": "#1f2830",
-        "railgun": "#2a2033"}
+POLY = {"pistol": "#3a3d46", "smg": "#363c44", "shotgun": "#5a4636", "rifle": "#3e4540", "blaster": "#2f4350",
+        "railgun": "#463658"}
 SLIDE_NAME = {"pistol": "Slide", "shotgun": "Slide"}   # others: Bolt
 
 
@@ -50,10 +50,10 @@ class Ctx:
             return tuple(a * (1 - k) + b * k for a, b in zip(R.hex_color(hexc), acc))
 
         k = 0.0 if rarity < 3 else 0.14
-        self.metal = R.material("GunMetal", R.hex_color("#3b3f47"), metallic=0.9, roughness=0.42, grunge=0.3)
-        self.steel = R.material("GunSteel", R.hex_color("#8d929c"), metallic=0.95, roughness=0.3, grunge=0.25)
+        self.metal = R.material("GunMetal", R.hex_color("#666c78"), metallic=0.9, roughness=0.42, grunge=0.3)
+        self.steel = R.material("GunSteel", R.hex_color("#b4bac6"), metallic=0.95, roughness=0.3, grunge=0.25)
         self.poly = R.material("GunPoly", tint(POLY[kind], k), metallic=0.0, roughness=0.78, grunge=0.35, scale=22)
-        self.dark = R.material("GunDark", R.hex_color("#101114"), metallic=0.3, roughness=0.6, grunge=0.15)
+        self.dark = R.material("GunDark", R.hex_color("#23252b"), metallic=0.3, roughness=0.6, grunge=0.15)
         self.trim = (R.material("GunGold", R.hex_color("#d9a53a"), metallic=1.0, roughness=0.28, grunge=0.2)
                      if rarity >= 5 else self.steel)
         self.glass = R.material("GunGlass", R.hex_color("#12202c"), metallic=0.0, roughness=0.08, grunge=0.0)

@@ -10,6 +10,8 @@ local Zones = require(ReplicatedStorage.Shared.Config.Zones)
 local World = require(ReplicatedStorage.Shared.Config.World)
 local Combat = require(ReplicatedStorage.Shared.Config.Combat)
 local P = require(script.Parent.MapParts)
+local MapZones = require(script.Parent.MapZones)
+local MapHub = require(script.Parent.MapHub)
 
 local part, cyl = P.part, P.cyl
 local GY = P.GY
@@ -75,8 +77,8 @@ local function buildHub(map: Model)
 	cyl(hub, "FloorInlay", R * 2 - 16, 0.2, CFrame.new(0, 0.05, 0), Color3.fromRGB(40, 36, 80), Enum.Material.SmoothPlastic, true)
 	cyl(hub, "NeonRing", R * 2 - 4, 0.3, CFrame.new(0, 0.1, 0), P.Cyan, NEON, true)
 	cyl(hub, "NeonRingInner", R * 2 - 8, 0.4, CFrame.new(0, 0.12, 0), P.Dark, Enum.Material.SmoothPlastic, true)
-	cyl(hub, "SpawnRing", 24, 0.3, CFrame.new(0, 0.16, 0), P.Pink, NEON, true)
-	cyl(hub, "SpawnRingInner", 21, 0.35, CFrame.new(0, 0.18, 0), Color3.fromRGB(40, 36, 80), Enum.Material.SmoothPlastic, true)
+	cyl(hub, "SpawnRing", 24, 0.3, CFrame.new(0, 0.55, 0), P.Pink, NEON, true)
+	cyl(hub, "SpawnRingInner", 21, 0.35, CFrame.new(0, 0.57, 0), Color3.fromRGB(40, 36, 80), Enum.Material.SmoothPlastic, true)
 	for i = 1, 28 do -- edge pylons (skip the lane mouth)
 		local a = i / 28 * math.pi * 2
 		local px, pz = math.cos(a) * (R - 1), math.sin(a) * (R - 1)
@@ -94,7 +96,7 @@ local function buildHub(map: Model)
 		part(hub, "ApronEdge", Vector3.new(0.8, 0.2, apronLen), CFrame.new(side * (halfLane - 0.6), 0.12, (MOUTH_Z + Zones[1].gatePos.Z) / 2), P.Cyan, NEON, true)
 	end
 	for n = 0, 5 do -- chevrons leading the eye down the lane
-		part(hub, "Chevron", Vector3.new(14, 0.1, 1.2), CFrame.new(0, 0.2, -12 - n * 11), P.Gold, NEON, true).Transparency = 0.2 + n * 0.1
+		part(hub, "Chevron", Vector3.new(14, 0.1, 1.2), CFrame.new(0, 0.56, -12 - n * 11), P.Gold, NEON, true).Transparency = 0.2 + n * 0.1
 	end
 	-- big arch "ADVENTURE ->"
 	for side = -1, 1, 2 do
@@ -174,6 +176,7 @@ local function buildHub(map: Model)
 		part(hub, "BossRim", sz, CFrame.new(pit.Position + d * 30 + Vector3.new(0, 0.7, 0)), Color3.fromRGB(255, 60, 90), NEON, true)
 	end
 	P.label(pit, "WORLD BOSS", Color3.fromRGB(255, 90, 110), 10)
+	MapHub.decorate(hub, R, STATIONS)
 end
 
 -- ===== Zones (one straight lane) =====
@@ -287,15 +290,9 @@ local function buildZone(parent: Folder, z, index: number)
 	part(decor, "EndBeam", Vector3.new(W + 10, 4, 4), CFrame.new(cx, 34, endZ + 2), P.Dark, Enum.Material.Metal, true)
 	part(decor, "EndGlow", Vector3.new(W + 10.4, 1, 4.4), CFrame.new(cx, 31.6, endZ + 2), accent, NEON, true)
 
-	-- landmark: tall, to the side of the road near the stage start so it is visible from the hub end
+	-- stage identity: terrain, set-pieces, arches, road detail, particles, landmark (MapZones)
 	local lside = index % 2 == 1 and 1 or -1
-	local lz = startZ - 70
-	local lpos = Vector3.new(cx + lside * 80, GY, lz)
-	local lm = model(m, "Landmark")
-	P.Landmarks[z.id](lm, lpos, CFrame.new(), z.color)
-	if z.id ~= "void" then
-		part(lm, "Beacon", Vector3.new(3, 3, 3), CFrame.new(lpos + Vector3.new(0, 150, 0)), accent, NEON, true)
-	end
+	MapZones.build({ m = m, z = z, cx = cx, half = half, startZ = startZ, endZ = endZ, accent = accent, rng = Random.new(index * 104729), lside = lside })
 
 	-- outland ground + roadside scenery + background silhouettes (decor only)
 	local sc = folder(m, "Scenery")
@@ -304,16 +301,16 @@ local function buildZone(parent: Folder, z, index: number)
 		part(sc, "Outland", Vector3.new(130, 4, outLen), CFrame.new(cx + side * (half + 65), -3, wallStart - outLen / 2 + 10), th.out, th.outMat, true)
 	end
 	local slotTop = index == 1 and wallStart - 10 or startZ + G - 6
-	for zz = slotTop, endZ + 10, -24 do
+	for zz = slotTop, endZ + 10, -30 do
 		for side = -1, 1, 2 do
-			if not (side == lside and math.abs(zz - lz) < 55) then
+			do
 				P.Scenery[z.id](sc, cx + side * (half + 8 + rng:NextNumber(0, 12)), zz + rng:NextNumber(-5, 5), rng)
 			end
 		end
 	end
-	for zz = slotTop, endZ + 10, -34 do
-		for side = -1, 1, 2 do
-			if not (side == lside and math.abs(zz - lz) < 90) then
+	if z.id == "void" then -- other stages use Terrain hills/cliffs instead of part silhouettes
+		for zz = slotTop, endZ + 10, -56 do
+			for side = -1, 1, 2 do
 				P.Backdrop[z.id](sc, cx + side * (half + 62 + rng:NextNumber(0, 40)), zz + rng:NextNumber(-8, 8), rng)
 			end
 		end
@@ -363,6 +360,7 @@ function MapService.Init(_services)
 	if base then
 		base:Destroy()
 	end
+	pcall(MapZones.setup)
 	local map = Instance.new("Model")
 	map.Name = "Map"
 	map.ModelStreamingMode = Enum.ModelStreamingMode.Default
@@ -373,6 +371,13 @@ function MapService.Init(_services)
 	end
 	buildArenas(map)
 	map.Parent = workspace
+	local n = 0
+	for _, d in ipairs(map:GetDescendants()) do
+		if d:IsA("BasePart") then
+			n += 1
+		end
+	end
+	print(string.format("[MapService] built Map: %d parts (budget 4000)", n))
 end
 
 return MapService

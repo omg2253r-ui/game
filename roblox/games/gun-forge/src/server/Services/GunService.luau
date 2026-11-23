@@ -11,6 +11,7 @@ local Net = require(Shared.Net)
 local GunService = {}
 local S
 local lastShot: { [Player]: number } = {}
+local headStats: { [Player]: { n: number, h: number } } = {}
 local burst: { [Player]: number } = {} -- shots fired in the current burst
 local ammo: { [Player]: { mag: number, max: number, reloadUntil: number, reload: number } } = {}
 local rng = Random.new()
@@ -225,6 +226,20 @@ local function onFire(player: Player, kind, targetId, headOff, mode, aimPos)
 			local off = math.clamp(headOff, -size * 0.6, size * 0.6)
 			head = off >= size * (0.5 - Guns.HeadFraction) and off <= size * 0.55
 		end
+		-- anti-cheat: humans can't headshot almost every shot; if the last 40 hits claim > 65% heads,
+		-- stop honouring head claims for this player (random crits still work)
+		local hs = headStats[player] or { n = 0, h = 0 }
+		headStats[player] = hs
+		hs.n += 1
+		if head then
+			hs.h += 1
+		end
+		if hs.n > 40 then
+			hs.n, hs.h = hs.n * 0.5, hs.h * 0.5
+		end
+		if head and hs.n >= 20 and hs.h / hs.n > 0.65 then
+			head = false
+		end
 		local crit = head or rng:NextNumber() < t.crit + ench(item, "crit")
 		local mastery = 1 + (item.lvl or 0) * Guns.Mastery.DamagePerLevel
 		local dmg = item.dmg * Guns.PowerFactor(S.PlayerService.GetPower(player)) * Guns.Falloff(item.id, dist * (1 - ench(item, "range")))
@@ -307,6 +322,7 @@ function GunService.Init(services)
 	end
 	Players.PlayerRemoving:Connect(function(p)
 		lastShot[p] = nil
+		headStats[p] = nil
 		lastRelay[p] = nil
 		ammo[p] = nil
 		burst[p] = nil
