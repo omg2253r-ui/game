@@ -60,7 +60,7 @@ function PlayerService.TrainMultiplier(player: Player): number
 		m *= Training.ProductBoost.Multiplier
 	end
 	if not PlayerService.InArena(player) then
-		m *= S.EventService.Mult("train")
+		m *= S.EventService.Mult("train") * S.SocialService.Mult(player)
 	end
 	return m
 end
@@ -71,7 +71,7 @@ end
 
 -- Extra coin multiplier on top of the pass multiplier EconomyService applies itself
 function PlayerService.CoinBonus(player: Player): number
-	return S.PetService.Multipliers(player).coins * (1 + S.ClanService.Perk(player)) * S.EventService.Mult("coins")
+	return S.PetService.Multipliers(player).coins * (1 + S.ClanService.Perk(player)) * S.EventService.Mult("coins") * S.SocialService.Mult(player)
 end
 
 function PlayerService.DropMultiplier(player: Player): number

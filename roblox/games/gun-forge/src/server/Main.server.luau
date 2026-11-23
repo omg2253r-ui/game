@@ -15,6 +15,7 @@ local order = {
 	"CollectibleService",
 	-- Gun Forge
 	"EventService",
+	"SocialService",
 	"PlayerService",
 	"InventoryService",
 	"PetService",
