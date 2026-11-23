@@ -1,6 +1,6 @@
 """Detailed, smooth, rigged + animated creatures (monsters, bosses, pets, NPCs) for Roblox (v2).
 
-  python make_character.py --roster monsters --out art/blender/monsters/     (20 files: 16 monsters + 4 bosses)
+  python make_character.py --roster monsters --out art/blender/monsters/     (20 files: 15 monsters + 5 bosses)
   python make_character.py --roster pets     --out art/blender/pets/         (18 files)
   python make_character.py --only slime_king --roster monsters --out out/    (one id)
   python make_character.py --style pet --color "#ffb347" --out out/pet.fbx   (legacy single creature)
