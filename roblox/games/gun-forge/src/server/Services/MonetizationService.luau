@@ -131,6 +131,7 @@ local function applyPerks(player: Player)
 		local perks = def and def.perks or {}
 		if humanoid and perks.walkSpeed then
 			humanoid.WalkSpeed = math.max(humanoid.WalkSpeed, perks.walkSpeed)
+			humanoid:SetAttribute("BaseSpeed", math.max(humanoid:GetAttribute("BaseSpeed") or 0, perks.walkSpeed))
 		end
 		if humanoid and perks.jumpPower then
 			humanoid.UseJumpPower = true

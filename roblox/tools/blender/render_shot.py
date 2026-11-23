@@ -52,10 +52,14 @@ def main():
         new = [o for o in bpy.data.objects if o not in before]
         roots = [o for o in new if o.parent is None]
         ms = [o for o in new if o.type == "MESH"]
-        width = max((max(o.dimensions.x, o.dimensions.y) for o in ms), default=2)
-        for r in roots:
-            r.location.x += x + width / 2
-        x += width * a.spread
+        bpy.context.view_layer.update()
+        wpts = [o.matrix_world @ Vector(c) for o in ms for c in o.bound_box]
+        if not wpts:
+            continue
+        lo_x, hi_x = min(v.x for v in wpts), max(v.x for v in wpts)
+        for r in roots:   # lay models out left->right by their real world bounds (rigged FBX import scale safe)
+            r.location.x += x - lo_x
+        x += (hi_x - lo_x) * a.spread
         meshes += ms
     bpy.context.view_layer.update()
 

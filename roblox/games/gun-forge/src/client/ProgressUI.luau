@@ -65,7 +65,7 @@ end
 
 -- compact always-visible story tracker (top-right); onClick opens STORY tab
 function P.tracker(gui: Instance, onClick: () -> ())
-	local f = UI.panel({ Name = "StoryTracker", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 200), Size = UDim2.fromOffset(240, 64), BackgroundColor3 = C.Bg, BackgroundTransparency = 0.15, Parent = gui })
+	local f = UI.panel({ Name = "StoryTracker", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 126), Size = UDim2.fromOffset(240, 64), BackgroundColor3 = C.Bg, BackgroundTransparency = 0.15, Parent = gui })
 	local title = UI.label("STORY", 14, { Font = Theme.Font, TextColor3 = C.Accent, Position = UDim2.fromOffset(8, 2), Size = UDim2.new(1, -16, 0, 18), TextXAlignment = Enum.TextXAlignment.Left, Parent = f })
 	local text = UI.label("", 13, { Font = Theme.FontBody, Position = UDim2.fromOffset(8, 20), Size = UDim2.new(1, -16, 0, 28), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Parent = f })
 	local bar = UI.new("Frame", { BackgroundColor3 = C.Panel, Position = UDim2.new(0, 8, 1, -10), Size = UDim2.new(1, -16, 0, 6), Parent = f }, { UI.corner(UDim.new(1, 0)) })

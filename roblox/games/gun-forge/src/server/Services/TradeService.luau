@@ -4,11 +4,13 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Net = require(ReplicatedStorage.Shared.Net)
+local Pets = require(ReplicatedStorage.Shared.Config.Pets)
+local Recipes = require(ReplicatedStorage.Shared.Config.Recipes)
 
 local TradeService = {}
 local S
 local MAX_ITEMS, CONFIRM = 8, 3
-type Trade = { a: Player, b: Player, offer: { [Player]: { string } }, ready: { [Player]: boolean }, confirmAt: number?, done: boolean }
+type Trade = { a: Player, b: Player, offer: { [Player]: { string } }, ready: { [Player]: boolean }, confirmAt: number?, stamp: number?, done: boolean }
 local trades: { [Player]: Trade } = {}
 local requests: { [Player]: { [Player]: number } } = {} -- target -> from -> time
 
@@ -81,7 +83,7 @@ local function canReceive(p: Player, incoming: { string }, outgoing: { string },
 			gear -= 1
 		end
 	end
-	return S.InventoryService.ItemCount(p, "pet") + pets <= 200 and S.InventoryService.ItemCount(p, "gun") + gear <= 150
+	return S.InventoryService.ItemCount(p, "pet") + pets <= Pets.MaxPets and S.InventoryService.ItemCount(p, "gun") + gear <= Recipes.MaxItems
 end
 
 local function valid(t: Trade): boolean
@@ -167,6 +169,9 @@ function TradeService.Init(services)
 			return
 		end
 		requests[target] = requests[target] or {}
+		if requests[target][p] and os.clock() - requests[target][p] < 10 then
+			return -- no invite spam
+		end
 		requests[target][p] = os.clock()
 		Net.fire(target, "TradeInvite", { fromId = p.UserId, from = p.DisplayName })
 		S.EconomyService.Toast(p, "Trade request sent to " .. target.DisplayName, "info")

@@ -211,7 +211,7 @@ function Hud.Init()
 		pulseBtn.Label.Text = ""
 	end
 
-	banner = UI.label("", 30, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104), Size = UDim2.fromOffset(900, 40), TextColor3 = C.Gold, Visible = false, Parent = gui })
+	banner = UI.label("", 30, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104), Size = UDim2.fromOffset(560, 40), TextColor3 = C.Gold, Visible = false, Parent = gui })
 
 	Net.listen("PulseOffer", function(seconds)
 		Vfx.Sound(Sounds.Pulse)
@@ -320,8 +320,7 @@ function Hud.Init()
 			return
 		end
 		sprinting = on
-		hum.WalkSpeed = if on then hum.WalkSpeed * 1.4 else hum.WalkSpeed / 1.4
-		TweenService:Create(Workspace.CurrentCamera, TweenInfo.new(0.25), { FieldOfView = if on then 80 else 70 }):Play()
+		player:SetAttribute("Sprinting", on) -- GunController applies speed/FOV (shared with ADS)
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if not processed and input.KeyCode == Enum.KeyCode.LeftShift then
@@ -338,12 +337,12 @@ function Hud.Init()
 		sb = UI.button("RUN", C.PanelLight, function()
 			setSprint(not sprinting)
 			sb.BackgroundColor3 = if sprinting then C.Energy else C.PanelLight
-		end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -270, 1, -236), Size = UDim2.fromOffset(64, 64), Parent = gui })
+		end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -370, 1, -160), Size = UDim2.fromOffset(64, 64), Parent = gui })
 		UI.corner(UDim.new(1, 0)).Parent = sb
 	end
 	player.CharacterAdded:Connect(function()
 		sprinting = false
-		Workspace.CurrentCamera.FieldOfView = 70
+		player:SetAttribute("Sprinting", false)
 	end)
 
 	-- stage progress bar: distance from the gate to the boss of the stage you are in

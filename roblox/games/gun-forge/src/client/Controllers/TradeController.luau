@@ -111,7 +111,7 @@ end
 
 local function eventBanner()
 	local gui = UIController.Gui()
-	local holder = UI.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 130), Size = UDim2.fromOffset(240, 200), Parent = gui })
+	local holder = UI.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 196), Size = UDim2.fromOffset(240, 200), Parent = gui })
 	UI.new("UIListLayout", { Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Right, Parent = holder })
 	local events = {}
 	Net.listen("EventState", function(list)

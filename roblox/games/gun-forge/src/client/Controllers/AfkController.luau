@@ -41,7 +41,7 @@ function Afk.Init()
 	end, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 150, 1, -16), Size = UDim2.fromOffset(70, 56), Parent = gui })
 	btn.Label.TextSize = 16
 
-	local chip = UI.panel({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 98), Size = UDim2.fromOffset(200, 24), BackgroundColor3 = C.Primary, Visible = false, Parent = gui })
+	local chip = UI.panel({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(0.5, -176, 0, 64), Size = UDim2.fromOffset(200, 24), BackgroundColor3 = C.Primary, Visible = false, Parent = gui })
 	local chipL = UI.label("", 13, { Size = UDim2.fromScale(1, 1), Parent = chip })
 	player:GetAttributeChangedSignal("SocialBoost"):Connect(function()
 		local b = player:GetAttribute("SocialBoost") or 0

@@ -43,7 +43,6 @@ local bloom = 0 -- extra spread degrees from spraying
 local shotIdx = 0
 local recoilP, recoilPV, recoilY, recoilYV = 0, 0, 0, 0 -- radians (camera offset, springs back to 0)
 local baseFov = 70
-local slowRatio = 0
 local origSens = UserInputService.MouseDeltaSensitivity
 local hitFlashUntil = 0
 -- ui
@@ -52,7 +51,6 @@ local cross: { Frame } = {}
 local crossRoot: Frame? = nil
 local scopeBars: { Frame } = {}
 local scopeRoot: Frame? = nil
-local slowHum: Humanoid? = nil
 
 local function tool(): Tool?
 	local c = player.Character
@@ -510,21 +508,19 @@ local function renderStep(dt: number)
 		cam.FieldOfView = baseFov + (def.fov - baseFov) * adsA
 		UserInputService.MouseDeltaSensitivity = origSens * (1 - 0.5 * adsA * (1 - def.fov / 70))
 	else
-		baseFov = cam.FieldOfView
+		local wantFov = if player:GetAttribute("Sprinting") then 80 else 70
+		baseFov = cam.FieldOfView + (wantFov - cam.FieldOfView) * math.clamp(dt * 8, 0, 1)
+		cam.FieldOfView = baseFov
 		UserInputService.MouseDeltaSensitivity = origSens
 	end
 
-	-- slower walking while aimed
-	local wantSlow = def ~= nil and adsA > 0.5
-	if slowRatio ~= 0 and slowHum ~= hum then
-		slowRatio, slowHum = 0, nil -- respawned: the old humanoid is gone
-	end
-	if wantSlow and slowRatio == 0 and hum and def then
-		slowRatio, slowHum = def.adsSpeed, hum
-		hum.WalkSpeed *= slowRatio
-	elseif not wantSlow and slowRatio ~= 0 and hum then
-		hum.WalkSpeed /= slowRatio
-		slowRatio, slowHum = 0, nil
+	-- speed = server BaseSpeed attribute * sprint * ADS (single owner; no read-modify-write of WalkSpeed)
+	local baseSpd = hum and hum:GetAttribute("BaseSpeed")
+	if hum and type(baseSpd) == "number" then
+		local want = baseSpd * (if player:GetAttribute("Sprinting") then 1.4 else 1) * (if def and adsA > 0.5 then def.adsSpeed else 1)
+		if math.abs(hum.WalkSpeed - want) > 0.01 then
+			hum.WalkSpeed = want
+		end
 	end
 
 	-- recoil springs (camera offset), applied after the camera script so it recovers on its own
@@ -627,7 +623,7 @@ function GunController.Init()
 	end)
 	local touch = UserInputService.TouchEnabled
 	local fire = UI.button("FIRE", Theme.Colors.Danger, function() end, {
-		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -150, 1, -150), Size = UDim2.fromOffset(110, 110), Visible = touch, Parent = gui })
+		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -176, 1, -150), Size = UDim2.fromOffset(110, 110), Visible = touch, Parent = gui })
 	UI.corner(UDim.new(1, 0)).Parent = fire
 	fire.MouseButton1Down:Connect(function()
 		holding = true
@@ -640,12 +636,12 @@ function GunController.Init()
 		holding = false
 	end)
 	local reloadBtn = UI.button("R", Theme.Colors.PanelLight, GunController.Reload, {
-		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -270, 1, -160), Size = UDim2.fromOffset(64, 64), Visible = touch, Parent = gui })
+		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -296, 1, -160), Size = UDim2.fromOffset(64, 64), Visible = touch, Parent = gui })
 	UI.corner(UDim.new(1, 0)).Parent = reloadBtn
 	-- mobile ADS toggle (above FIRE)
 	local adsBtn = UI.button("ADS", Theme.Colors.PanelLight, function()
 		adsWanted = not adsWanted
-	end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -150, 1, -268), Size = UDim2.fromOffset(70, 70), Visible = touch, Parent = gui })
+	end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -176, 1, -268), Size = UDim2.fromOffset(70, 70), Visible = touch, Parent = gui })
 	UI.corner(UDim.new(1, 0)).Parent = adsBtn
 	-- fire mode button: next to FIRE on touch, above AUTO on PC (also key B)
 	local mb: any = UI.button("SEMI", Theme.Colors.PanelLight, function()
@@ -654,7 +650,7 @@ function GunController.Init()
 		if def then
 			cycleMode(def)
 		end
-	end, { AnchorPoint = Vector2.new(1, 1), Position = if touch then UDim2.new(1, -270, 1, -232) else UDim2.new(1, -16, 1, -142),
+	end, { AnchorPoint = Vector2.new(1, 1), Position = if touch then UDim2.new(1, -296, 1, -232) else UDim2.new(1, -16, 1, -210),
 		Size = if touch then UDim2.fromOffset(64, 40) else UDim2.fromOffset(150, 34), Visible = false, Parent = gui })
 	mb.Label.TextSize = 16
 	modeBtn = mb
@@ -668,7 +664,7 @@ function GunController.Init()
 		end
 		GunController.Auto = not GunController.Auto
 		auto.Label.Text = if GunController.Auto then "AUTO: ON" else "AUTO: OFF"
-	end, { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -86), Size = UDim2.fromOffset(150, 50), Parent = gui })
+	end, { AnchorPoint = Vector2.new(1, 1), Position = if touch then UDim2.new(1, -140, 1, -86) else UDim2.new(1, -16, 1, -86), Size = UDim2.fromOffset(150, 50), Parent = gui })
 	auto.Label.TextSize = 18
 
 	Net.listen("Ammo", function(mag: number, max: number, reload: number)

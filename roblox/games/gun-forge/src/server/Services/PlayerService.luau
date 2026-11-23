@@ -124,6 +124,7 @@ function PlayerService.RefreshCharacter(player: Player)
 		end
 	end
 	hum.WalkSpeed = speed
+	hum:SetAttribute("BaseSpeed", speed)
 end
 
 function PlayerService.Init(services)
